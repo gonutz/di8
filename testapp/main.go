@@ -1,26 +1,28 @@
 package main
 
-//#cgo CFLAGS: -DUNICODE
-//#include "win.h"
-import "C"
 import (
 	"fmt"
+	"github.com/AllenDang/gform"
+	"github.com/AllenDang/w32"
 	"github.com/gonutz/di8"
 	"unsafe"
 )
 
 func main() {
-	var window C.HWND
-	if errorCode := C.openWindow(&window); errorCode != C.OK {
-		panic(errorCode)
-	}
+	gform.Init()
+
+	form := gform.NewForm(nil)
+	form.Show()
+	form.OnClose().Bind(func(arg *gform.EventArg) {
+		w32.DestroyWindow(form.Handle())
+	})
 
 	check(di8.Init())
 	defer di8.Close()
 
-	dinput, err := di8.Create(unsafe.Pointer(C.GetModuleHandle(nil)))
-	check(err)
+	dinput, err := di8.Create(unsafe.Pointer(w32.GetModuleHandle("")))
 	defer dinput.Release()
+	check(err)
 
 	dinput.EnumDevices(
 		di8.DEVCLASS_ALL,
@@ -31,23 +33,7 @@ func main() {
 		di8.EDFL_ALLDEVICES,
 	)
 
-	var msg C.MSG
-	C.PeekMessage(&msg, nil, 0, 0, C.PM_NOREMOVE)
-	for msg.message != C.WM_QUIT {
-		if C.PeekMessage(&msg, nil, 0, 0, C.PM_REMOVE) != 0 {
-			C.TranslateMessage(&msg)
-			C.DispatchMessage(&msg)
-		} else {
-		}
-	}
-}
-
-//export messageCallbackGo
-func messageCallbackGo(window C.HWND, message C.UINT, w C.WPARAM, l C.LPARAM) C.LRESULT {
-	if message == C.WM_DESTROY {
-		C.PostQuitMessage(0)
-	}
-	return C.DefWindowProc(window, message, w, l)
+	gform.RunMainLoop()
 }
 
 func check(err error) {
