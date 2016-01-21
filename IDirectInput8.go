@@ -1,7 +1,7 @@
 package di8
 
 /*
-#cgo LDFLAGS: -ldinput8
+#cgo LDFLAGS: -ldinput8 -ldxguid
 
 #include "dinput_wrapper.h"
 
