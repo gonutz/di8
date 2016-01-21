@@ -34,7 +34,7 @@ HRESULT IDirectInput8EnumDevices(IDirectInput8* obj, DWORD dwDevType, void* pvRe
 	return obj->lpVtbl->EnumDevices(obj, dwDevType, enumDevicesCallbackGo, pvRef, dwFlags);
 }
 
-HRESULT IDirectInput8FindDevice(IDirectInput8* obj, REFGUID rguidClass, LPCTSTR ptszName, LPGUID pguidInstance) {
+HRESULT IDirectInput8FindDevice(IDirectInput8* obj, REFGUID rguidClass, CHAR* ptszName, LPGUID pguidInstance) {
 	return obj->lpVtbl->FindDevice(obj, rguidClass, ptszName, pguidInstance);
 }
 
