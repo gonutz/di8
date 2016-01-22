@@ -24,17 +24,30 @@ HRESULT create(void* DirectInput8CreateFuncPtr, HINSTANCE instance, IDirectInput
 	);
 }
 
-HRESULT IDirectInput8CreateDevice(IDirectInput8* obj, GUID* rguid, IDirectInputDevice8** lplpDirectInputDevice, LPUNKNOWN pUnkOuter) {
+HRESULT IDirectInput8CreateDevice(IDirectInput8* obj,
+		GUID* rguid,
+		IDirectInputDevice8** lplpDirectInputDevice,
+		LPUNKNOWN pUnkOuter) {
 	return obj->lpVtbl->CreateDevice(obj, rguid, lplpDirectInputDevice, pUnkOuter);
 }
 
 BOOL enumDevicesCallbackGo(LPCDIDEVICEINSTANCE, void*);
 
-HRESULT IDirectInput8EnumDevices(IDirectInput8* obj, DWORD dwDevType, void* pvRef, DWORD dwFlags) {
-	return obj->lpVtbl->EnumDevices(obj, dwDevType, enumDevicesCallbackGo, pvRef, dwFlags);
+HRESULT IDirectInput8EnumDevices(IDirectInput8* obj,
+		DWORD dwDevType,
+		void* pvRef,
+		DWORD dwFlags) {
+	return obj->lpVtbl->EnumDevices(obj,
+		dwDevType,
+		(LPDIENUMDEVICESCALLBACK)enumDevicesCallbackGo,
+		pvRef,
+		dwFlags);
 }
 
-HRESULT IDirectInput8FindDevice(IDirectInput8* obj, REFGUID rguidClass, CHAR* ptszName, LPGUID pguidInstance) {
+HRESULT IDirectInput8FindDevice(IDirectInput8* obj,
+		REFGUID rguidClass,
+		CHAR* ptszName,
+		LPGUID pguidInstance) {
 	return obj->lpVtbl->FindDevice(obj, rguidClass, ptszName, pguidInstance);
 }
 
@@ -42,7 +55,9 @@ HRESULT IDirectInput8GetDeviceStatus(IDirectInput8* obj, REFGUID rguidInstance) 
 	return obj->lpVtbl->GetDeviceStatus(obj, rguidInstance);
 }
 
-HRESULT IDirectInput8RunControlPanel(IDirectInput8* obj, HWND hwndOwner, DWORD dwFlags) {
+HRESULT IDirectInput8RunControlPanel(IDirectInput8* obj,
+			HWND hwndOwner,
+			DWORD dwFlags) {
 	return obj->lpVtbl->RunControlPanel(obj, hwndOwner, dwFlags);
 }
 

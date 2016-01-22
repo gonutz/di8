@@ -17,13 +17,19 @@ HRESULT IDirectInputDevice8BuildActionMap(IDirectInputDevice8* obj,
 BOOL enumEffectsCallbackGo(LPCDIEFFECTINFO, void*);
 
 HRESULT IDirectInputDevice8EnumEffects(IDirectInputDevice8* obj, DWORD dwEffType) {
-	return obj->lpVtbl->EnumEffects(obj, enumEffectsCallbackGo, 0, dwEffType);
+	return obj->lpVtbl->EnumEffects(obj,
+		(LPDIENUMEFFECTSCALLBACK)enumEffectsCallbackGo,
+		0,
+		dwEffType);
 }
 
 BOOL enumObjectsCallbackGo(LPCDIDEVICEOBJECTINSTANCE, void*);
 
 HRESULT IDirectInputDevice8EnumObjects(IDirectInputDevice8* obj, DWORD flags) {
-	return obj->lpVtbl->EnumObjects(obj, enumObjectsCallbackGo, 0, flags);
+	return obj->lpVtbl->EnumObjects(obj,
+		(LPDIENUMDEVICEOBJECTSCALLBACK)enumObjectsCallbackGo,
+		0,
+		flags);
 }
 
 HRESULT IDirectInputDevice8GetDeviceState(IDirectInputDevice8* obj,
