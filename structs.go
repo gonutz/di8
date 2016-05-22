@@ -299,6 +299,14 @@ type DEVICEOBJECTDATA struct {
 	AppData   uintptr
 }
 
+func (s *DEVICEOBJECTDATA) fromC(c *C.DIDEVICEOBJECTDATA) {
+	s.Ofs = uint32(c.dwOfs)
+	s.Data = uint32(c.dwData)
+	s.TimeStamp = uint32(c.dwTimeStamp)
+	s.Sequence = uint32(c.dwSequence)
+	s.AppData = uintptr(c.uAppData)
+}
+
 type DEVICEOBJECTINSTANCE struct {
 	GuidType          GUID
 	Ofs               uint32

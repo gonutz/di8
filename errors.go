@@ -52,6 +52,8 @@ func (e Error) Error() string {
 		return "ERR_NOTFOUND, ERR_OBJECTNOTFOUND: The requested object does not exist."
 	case ERR_NOTINITIALIZED:
 		return "ERR_NOTINITIALIZED: This object has not been initialized."
+	case BUFFEROVERFLOW:
+		return "DI_BUFFEROVERFLOW: the device data was truncated."
 	default:
 		return "Unknown error code " + strconv.Itoa(int(e))
 	}

@@ -13,8 +13,12 @@ typedef HRESULT WINAPI direct_input8_create(
 	LPUNKNOWN punkOuterr
 );
 
-HRESULT create(void* DirectInput8CreateFuncPtr, HINSTANCE instance, IDirectInput8** obj) {
-	direct_input8_create* DirectInput8Create = (direct_input8_create*) DirectInput8CreateFuncPtr;
+HRESULT create(
+		void* DirectInput8CreateFuncPtr,
+		HINSTANCE instance,
+		IDirectInput8** obj) {
+	direct_input8_create* DirectInput8Create =
+		(direct_input8_create*) DirectInput8CreateFuncPtr;
 	return DirectInput8Create(
 		instance,
 		DIRECTINPUT_VERSION,
@@ -24,38 +28,49 @@ HRESULT create(void* DirectInput8CreateFuncPtr, HINSTANCE instance, IDirectInput
 	);
 }
 
-HRESULT IDirectInput8CreateDevice(IDirectInput8* obj,
+HRESULT IDirectInput8CreateDevice(
+		IDirectInput8* obj,
 		GUID* rguid,
 		IDirectInputDevice8** lplpDirectInputDevice,
 		LPUNKNOWN pUnkOuter) {
-	return obj->lpVtbl->CreateDevice(obj, rguid, lplpDirectInputDevice, pUnkOuter);
+	return obj->lpVtbl->CreateDevice(
+		obj,
+		rguid,
+		lplpDirectInputDevice,
+		pUnkOuter);
 }
 
 BOOL enumDevicesCallbackGo(LPCDIDEVICEINSTANCE, void*);
 
-HRESULT IDirectInput8EnumDevices(IDirectInput8* obj,
+HRESULT IDirectInput8EnumDevices(
+		IDirectInput8* obj,
 		DWORD dwDevType,
 		void* pvRef,
 		DWORD dwFlags) {
-	return obj->lpVtbl->EnumDevices(obj,
+	return obj->lpVtbl->EnumDevices(
+		obj,
 		dwDevType,
 		(LPDIENUMDEVICESCALLBACK)enumDevicesCallbackGo,
 		pvRef,
 		dwFlags);
 }
 
-HRESULT IDirectInput8FindDevice(IDirectInput8* obj,
+HRESULT IDirectInput8FindDevice(
+		IDirectInput8* obj,
 		REFGUID rguidClass,
 		CHAR* ptszName,
 		LPGUID pguidInstance) {
 	return obj->lpVtbl->FindDevice(obj, rguidClass, ptszName, pguidInstance);
 }
 
-HRESULT IDirectInput8GetDeviceStatus(IDirectInput8* obj, REFGUID rguidInstance) {
+HRESULT IDirectInput8GetDeviceStatus(
+		IDirectInput8* obj,
+		REFGUID rguidInstance) {
 	return obj->lpVtbl->GetDeviceStatus(obj, rguidInstance);
 }
 
-HRESULT IDirectInput8RunControlPanel(IDirectInput8* obj,
+HRESULT IDirectInput8RunControlPanel(
+		IDirectInput8* obj,
 			HWND hwndOwner,
 			DWORD dwFlags) {
 	return obj->lpVtbl->RunControlPanel(obj, hwndOwner, dwFlags);
@@ -108,26 +123,53 @@ func Create(windowInstance unsafe.Pointer) (obj DirectInput, err error) {
 
 func (obj DirectInput) CreateDevice(guid GUID) (device Device, err error) {
 	cGuid := guid.toC()
-	err = toError(C.IDirectInput8CreateDevice(obj.handle, &cGuid, &device.handle, nil))
+	err = toError(C.IDirectInput8CreateDevice(
+		obj.handle,
+		&cGuid,
+		&device.handle,
+		nil,
+	))
 	return
 }
 
 // devType: DEVCLASS_* or DEVTYPE_*
 // flags: EDFL_*
-func (obj DirectInput) EnumDevices(devType uint32, callback EnumDevicesCallback, flags uint32) (err error) {
+func (obj DirectInput) EnumDevices(
+	devType uint32,
+	callback EnumDevicesCallback,
+	flags uint32,
+) (
+	err error,
+) {
 	currentEnumDevicesCallback = callback
-	err = toError(C.IDirectInput8EnumDevices(obj.handle, C.DWORD(devType), nil, C.DWORD(flags)))
+	err = toError(C.IDirectInput8EnumDevices(
+		obj.handle,
+		C.DWORD(devType),
+		nil,
+		C.DWORD(flags),
+	))
 	return
 }
 
 // TODO EnumDevicesBySemantics
 
-func (obj DirectInput) FindDevice(guid GUID, name string) (guidDevice GUID, err error) {
+func (obj DirectInput) FindDevice(
+	guid GUID,
+	name string,
+) (
+	guidDevice GUID,
+	err error,
+) {
 	cGuid := guid.toC()
 	cName := C.CString(name)
 	defer C.free(unsafe.Pointer(cName))
 	var cGuidDevice C.GUID
-	err = toError(C.IDirectInput8FindDevice(obj.handle, &cGuid, (*C.CHAR)(cName), &cGuidDevice))
+	err = toError(C.IDirectInput8FindDevice(
+		obj.handle,
+		&cGuid,
+		(*C.CHAR)(cName),
+		&cGuidDevice,
+	))
 	guidDevice.fromC(&cGuidDevice)
 	return
 }
@@ -138,8 +180,17 @@ func (obj DirectInput) GetDeviceStatus(guid GUID) (err error) {
 	return
 }
 
-func (obj DirectInput) RunControlPanel(ownerWindow unsafe.Pointer, flags uint32) (err error) {
-	err = toError(C.IDirectInput8RunControlPanel(obj.handle, C.HWND(ownerWindow), C.DWORD(flags)))
+func (obj DirectInput) RunControlPanel(
+	ownerWindow unsafe.Pointer,
+	flags uint32,
+) (
+	err error,
+) {
+	err = toError(C.IDirectInput8RunControlPanel(
+		obj.handle,
+		C.HWND(ownerWindow),
+		C.DWORD(flags),
+	))
 	return
 }
 

@@ -7,7 +7,8 @@ HRESULT IDirectInputDevice8Acquire(IDirectInputDevice8* obj) {
 	return obj->lpVtbl->Acquire(obj);
 }
 
-HRESULT IDirectInputDevice8BuildActionMap(IDirectInputDevice8* obj,
+HRESULT IDirectInputDevice8BuildActionMap(
+		IDirectInputDevice8* obj,
 		LPDIACTIONFORMAT lpdiaf,
 		LPCTSTR lpszUserName,
 		DWORD dwFlags) {
@@ -16,8 +17,11 @@ HRESULT IDirectInputDevice8BuildActionMap(IDirectInputDevice8* obj,
 
 BOOL enumEffectsCallbackGo(LPCDIEFFECTINFO, void*);
 
-HRESULT IDirectInputDevice8EnumEffects(IDirectInputDevice8* obj, DWORD dwEffType) {
-	return obj->lpVtbl->EnumEffects(obj,
+HRESULT IDirectInputDevice8EnumEffects(
+		IDirectInputDevice8* obj,
+		DWORD dwEffType) {
+	return obj->lpVtbl->EnumEffects(
+		obj,
 		(LPDIENUMEFFECTSCALLBACK)enumEffectsCallbackGo,
 		0,
 		dwEffType);
@@ -26,48 +30,65 @@ HRESULT IDirectInputDevice8EnumEffects(IDirectInputDevice8* obj, DWORD dwEffType
 BOOL enumObjectsCallbackGo(LPCDIDEVICEOBJECTINSTANCE, void*);
 
 HRESULT IDirectInputDevice8EnumObjects(IDirectInputDevice8* obj, DWORD flags) {
-	return obj->lpVtbl->EnumObjects(obj,
+	return obj->lpVtbl->EnumObjects(
+		obj,
 		(LPDIENUMDEVICEOBJECTSCALLBACK)enumObjectsCallbackGo,
 		0,
 		flags);
 }
 
-HRESULT IDirectInputDevice8GetDeviceState(IDirectInputDevice8* obj,
+HRESULT IDirectInputDevice8GetDeviceState(
+		IDirectInputDevice8* obj,
 		DWORD cbData,
 		void* lpvData) {
 	return obj->lpVtbl->GetDeviceState(obj, cbData, lpvData);
 }
 
-HRESULT IDirectInputDevice8SetCooperativeLevel(IDirectInputDevice8* obj,
+HRESULT IDirectInputDevice8SetCooperativeLevel(
+		IDirectInputDevice8* obj,
 		HWND hwnd,
 		DWORD dwFlags) {
 	return obj->lpVtbl->SetCooperativeLevel(obj, hwnd, dwFlags);
 }
 
-HRESULT IDirectInputDevice8SetDataFormat(IDirectInputDevice8* obj,
+HRESULT IDirectInputDevice8SetDataFormat(
+		IDirectInputDevice8* obj,
 		DIDATAFORMAT* lpdf) {
 	return obj->lpVtbl->SetDataFormat(obj, lpdf);
 }
 
-HRESULT IDirectInputDevice8GetProperty(IDirectInputDevice8* obj,
+HRESULT IDirectInputDevice8GetDeviceData(
+		IDirectInputDevice8* obj,
+		DWORD cbObjectData,
+		LPDIDEVICEOBJECTDATA rgdod,
+		LPDWORD pdwInOut,
+		DWORD dwFlags) {
+	return obj->lpVtbl->GetDeviceData(obj, cbObjectData, rgdod, pdwInOut, dwFlags);
+}
+
+HRESULT IDirectInputDevice8GetProperty(
+		IDirectInputDevice8* obj,
 		REFGUID rguidProp,
 		LPDIPROPHEADER pdiph){
 	return obj->lpVtbl->GetProperty(obj, rguidProp, pdiph);
 }
 
-HRESULT IDirectInputDevice8SetProperty(IDirectInputDevice8* obj,
+HRESULT IDirectInputDevice8SetProperty(
+		IDirectInputDevice8* obj,
 		REFGUID rguidProp,
 		LPCDIPROPHEADER pdiph){
 	return obj->lpVtbl->SetProperty(obj, rguidProp, pdiph);
 }
 
-HRESULT IDirectInputDevice8GetPredefinedProperty(IDirectInputDevice8* obj,
+HRESULT IDirectInputDevice8GetPredefinedProperty(
+		IDirectInputDevice8* obj,
 		void* rguidProp,
 		LPDIPROPHEADER pdiph){
 	return obj->lpVtbl->GetProperty(obj, (GUID*)rguidProp, pdiph);
 }
 
-HRESULT IDirectInputDevice8SetPredefinedProperty(IDirectInputDevice8* obj,
+HRESULT IDirectInputDevice8SetPredefinedProperty(
+		IDirectInputDevice8* obj,
 		void* rguidProp,
 		LPCDIPROPHEADER pdiph){
 	return obj->lpVtbl->SetProperty(obj, (GUID*)rguidProp, pdiph);
@@ -172,15 +193,28 @@ func (obj Device) Acquire() (err error) {
 //  return
 //}
 
-func (obj Device) EnumObjects(callback EnumObjectsCallback, flags uint32) (err error) {
+func (obj Device) EnumObjects(
+	callback EnumObjectsCallback,
+	flags uint32,
+) (
+	err error,
+) {
 	currentEnumObjectsCallback = callback
 	err = toError(C.IDirectInputDevice8EnumObjects(obj.handle, C.DWORD(flags)))
 	return
 }
 
-func (obj Device) EnumEffects(callback EnumEffectsCallback, effectType uint32) (err error) {
+func (obj Device) EnumEffects(
+	callback EnumEffectsCallback,
+	effectType uint32,
+) (
+	err error,
+) {
 	currentEnumEffectsCallback = callback
-	err = toError(C.IDirectInputDevice8EnumEffects(obj.handle, C.DWORD(effectType)))
+	err = toError(C.IDirectInputDevice8EnumEffects(
+		obj.handle,
+		C.DWORD(effectType),
+	))
 	return
 }
 
@@ -194,10 +228,29 @@ func (obj Device) EnumEffects(callback EnumEffectsCallback, effectType uint32) (
 //  return
 //}
 
-//func (obj Device) GetDeviceData() (err error) {
-//	err = toError(C.IDirectInputDevice8GetDeviceData(obj.handle))
-//  return
-//}
+func (obj Device) GetDeviceData(bufferSize int) (data []DEVICEOBJECTDATA, err error) {
+	cData := make([]C.DIDEVICEOBJECTDATA, bufferSize)
+	objectCount := C.DWORD(bufferSize)
+
+	err = toError(C.IDirectInputDevice8GetDeviceData(
+		obj.handle,
+		C.sizeof_DIDEVICEOBJECTDATA,
+		&cData[0],
+		&objectCount,
+		0,
+	))
+
+	if err != nil {
+		return
+	}
+
+	data = make([]DEVICEOBJECTDATA, objectCount)
+	for i := range data {
+		data[i].fromC(&cData[i])
+	}
+
+	return
+}
 
 //func (obj Device) GetDeviceInfo() (err error) {
 //	err = toError(C.IDirectInputDevice8GetDeviceInfo(obj.handle))
@@ -210,7 +263,11 @@ func (obj Device) EnumEffects(callback EnumEffectsCallback, effectType uint32) (
 //}
 
 func (obj Device) GetKeyboardState(state *KeyboardState) (err error) {
-	err = toError(C.IDirectInputDevice8GetDeviceState(obj.handle, 256, unsafe.Pointer(&state[0])))
+	err = toError(C.IDirectInputDevice8GetDeviceState(
+		obj.handle,
+		256,
+		unsafe.Pointer(&state[0]),
+	))
 	return
 }
 
@@ -224,8 +281,11 @@ func (k *KeyboardState) IsDown(key int) bool {
 }
 
 func (obj Device) GetMouseState(state *MouseState) (err error) {
-	err = toError(C.IDirectInputDevice8GetDeviceState(obj.handle,
-		C.sizeof_DIMOUSESTATE, unsafe.Pointer(&state.state)))
+	err = toError(C.IDirectInputDevice8GetDeviceState(
+		obj.handle,
+		C.sizeof_DIMOUSESTATE,
+		unsafe.Pointer(&state.state),
+	))
 	return
 }
 
@@ -259,8 +319,11 @@ const (
 )
 
 func (obj Device) GetMouseState2(state *MouseState2) (err error) {
-	err = toError(C.IDirectInputDevice8GetDeviceState(obj.handle,
-		C.sizeof_DIMOUSESTATE2, unsafe.Pointer(&state.state)))
+	err = toError(C.IDirectInputDevice8GetDeviceState(
+		obj.handle,
+		C.sizeof_DIMOUSESTATE2,
+		unsafe.Pointer(&state.state),
+	))
 	return
 }
 
@@ -288,8 +351,11 @@ func (m *MouseState2) IsDown(mouseButton int) bool {
 }
 
 func (obj Device) GetJoyState(state *JoyState) (err error) {
-	err = toError(C.IDirectInputDevice8GetDeviceState(obj.handle,
-		C.sizeof_DIJOYSTATE, unsafe.Pointer(&state.state)))
+	err = toError(C.IDirectInputDevice8GetDeviceState(
+		obj.handle,
+		C.sizeof_DIJOYSTATE,
+		unsafe.Pointer(&state.state),
+	))
 	return
 }
 
@@ -359,8 +425,11 @@ func (j *JoyState) IsDown(button int) bool {
 }
 
 func (obj Device) GetJoyState2(state *JoyState2) (err error) {
-	err = toError(C.IDirectInputDevice8GetDeviceState(obj.handle,
-		C.sizeof_DIJOYSTATE2, unsafe.Pointer(&state.state)))
+	err = toError(C.IDirectInputDevice8GetDeviceState(
+		obj.handle,
+		C.sizeof_DIJOYSTATE2,
+		unsafe.Pointer(&state.state),
+	))
 	return
 }
 
@@ -569,12 +638,25 @@ func (j *JoyState2) IsDown(button int) bool {
 //  return
 //}
 
-func (obj Device) SetCooperativeLevel(windowHandle unsafe.Pointer, flags uint32) (err error) {
-	err = toError(C.IDirectInputDevice8SetCooperativeLevel(obj.handle, C.HWND(windowHandle), C.DWORD(flags)))
+func (obj Device) SetCooperativeLevel(
+	windowHandle unsafe.Pointer,
+	flags uint32,
+) (
+	err error,
+) {
+	err = toError(C.IDirectInputDevice8SetCooperativeLevel(
+		obj.handle,
+		C.HWND(windowHandle),
+		C.DWORD(flags),
+	))
 	return
 }
 
-func (obj Device) SetPredefinedDataFormat(format PredefinedDataFormat) (err error) {
+func (obj Device) SetPredefinedDataFormat(
+	format PredefinedDataFormat,
+) (
+	err error,
+) {
 	var cFormat *C.DIDATAFORMAT
 	switch format {
 	case DataFormatKeyboard:
@@ -622,50 +704,82 @@ const (
 
 // NOTE GetProperty might return S_FALSE even on success, see MSDN
 
-func (device Device) GetPredefinedDwordProperty(prop, obj, how int) (value uint32, err error) {
+func (device Device) GetPredefinedDwordProperty(
+	prop, obj, how int,
+) (
+	value uint32,
+	err error,
+) {
 	var cProp C.DIPROPDWORD
 	cProp.diph.dwSize = C.sizeof_DIPROPDWORD
 	cProp.diph.dwHeaderSize = C.sizeof_DIPROPHEADER
 	cProp.diph.dwObj = C.DWORD(obj)
 	cProp.diph.dwHow = C.DWORD(how)
-	err = toGetPropError(C.IDirectInputDevice8GetPredefinedProperty(device.handle,
-		unsafe.Pointer(uintptr(prop)), &cProp.diph))
+	err = toGetPropError(C.IDirectInputDevice8GetPredefinedProperty(
+		device.handle,
+		unsafe.Pointer(uintptr(prop)),
+		&cProp.diph,
+	))
 	value = uint32(cProp.dwData)
 	return
 }
 
-func (device Device) GetPredefinedPointerProperty(prop, obj, how int) (value uintptr, err error) {
+func (device Device) GetPredefinedPointerProperty(
+	prop, obj, how int,
+) (
+	value uintptr,
+	err error,
+) {
 	var cProp C.DIPROPPOINTER
 	cProp.diph.dwSize = C.sizeof_DIPROPPOINTER
 	cProp.diph.dwHeaderSize = C.sizeof_DIPROPHEADER
 	cProp.diph.dwObj = C.DWORD(obj)
 	cProp.diph.dwHow = C.DWORD(how)
-	err = toGetPropError(C.IDirectInputDevice8GetPredefinedProperty(device.handle,
-		unsafe.Pointer(uintptr(prop)), &cProp.diph))
+	err = toGetPropError(C.IDirectInputDevice8GetPredefinedProperty(
+		device.handle,
+		unsafe.Pointer(uintptr(prop)),
+		&cProp.diph,
+	))
 	value = uintptr(cProp.uData)
 	return
 }
 
-func (device Device) GetPredefinedRangeProperty(prop, obj, how int) (min, max int, err error) {
+func (device Device) GetPredefinedRangeProperty(
+	prop, obj, how int,
+) (
+	min, max int,
+	err error,
+) {
 	var cProp C.DIPROPRANGE
 	cProp.diph.dwSize = C.sizeof_DIPROPRANGE
 	cProp.diph.dwHeaderSize = C.sizeof_DIPROPHEADER
 	cProp.diph.dwObj = C.DWORD(obj)
 	cProp.diph.dwHow = C.DWORD(how)
-	err = toGetPropError(C.IDirectInputDevice8GetPredefinedProperty(device.handle,
-		unsafe.Pointer(uintptr(prop)), &cProp.diph))
+	err = toGetPropError(C.IDirectInputDevice8GetPredefinedProperty(
+		device.handle,
+		unsafe.Pointer(uintptr(prop)),
+		&cProp.diph,
+	))
 	min, max = int(cProp.lMin), int(cProp.lMax)
 	return
 }
 
-func (device Device) GetPredefinedStringProperty(prop, obj, how int) (value string, err error) {
+func (device Device) GetPredefinedStringProperty(
+	prop, obj, how int,
+) (
+	value string,
+	err error,
+) {
 	var cProp C.DIPROPSTRING
 	cProp.diph.dwSize = C.sizeof_DIPROPSTRING
 	cProp.diph.dwHeaderSize = C.sizeof_DIPROPHEADER
 	cProp.diph.dwObj = C.DWORD(obj)
 	cProp.diph.dwHow = C.DWORD(how)
-	err = toGetPropError(C.IDirectInputDevice8GetPredefinedProperty(device.handle,
-		unsafe.Pointer(uintptr(prop)), &cProp.diph))
+	err = toGetPropError(C.IDirectInputDevice8GetPredefinedProperty(
+		device.handle,
+		unsafe.Pointer(uintptr(prop)),
+		&cProp.diph,
+	))
 	var buf [maxPath]uint16
 	length := 0
 	for ; length < maxPath; length++ {
@@ -678,14 +792,23 @@ func (device Device) GetPredefinedStringProperty(prop, obj, how int) (value stri
 	return
 }
 
-func (device Device) GetPredefinedGuidAndPathProperty(prop, obj, how int) (guid GUID, path string, err error) {
+func (device Device) GetPredefinedGuidAndPathProperty(
+	prop, obj, how int,
+) (
+	guid GUID,
+	path string,
+	err error,
+) {
 	var cProp C.DIPROPGUIDANDPATH
 	cProp.diph.dwSize = C.sizeof_DIPROPGUIDANDPATH
 	cProp.diph.dwHeaderSize = C.sizeof_DIPROPHEADER
 	cProp.diph.dwObj = C.DWORD(obj)
 	cProp.diph.dwHow = C.DWORD(how)
-	err = toGetPropError(C.IDirectInputDevice8GetPredefinedProperty(device.handle,
-		unsafe.Pointer(uintptr(prop)), &cProp.diph))
+	err = toGetPropError(C.IDirectInputDevice8GetPredefinedProperty(
+		device.handle,
+		unsafe.Pointer(uintptr(prop)),
+		&cProp.diph,
+	))
 	guid.fromC(&cProp.guidClass)
 	var buf [maxPath]uint16
 	length := 0
@@ -706,15 +829,22 @@ func toGetPropError(hr C.HRESULT) error {
 	return toError(hr)
 }
 
-func (obj Device) SetPredefinedProperty(prop int, value propHeader) (err error) {
+func (obj Device) SetPredefinedProperty(
+	prop int,
+	value propHeader) (
+	err error,
+) {
 	if prop < 1 || prop > 26 {
 		return errors.New(strconv.Itoa(prop) + " is not a predefined property")
 	}
 	if value == nil {
 		return toError(ERR_INVALIDPARAM)
 	}
-	err = toError(C.IDirectInputDevice8SetPredefinedProperty(obj.handle,
-		unsafe.Pointer(uintptr(prop)), value.headerAddress()))
+	err = toError(C.IDirectInputDevice8SetPredefinedProperty(
+		obj.handle,
+		unsafe.Pointer(uintptr(prop)),
+		value.headerAddress(),
+	))
 	return
 }
 
