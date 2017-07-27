@@ -2,9 +2,35 @@ package di8
 
 import "strconv"
 
-type Error int64
+// Error is returned by all DirectInput8 functions. It encapsulates the error
+// code returned by DirectInput. If a function succeeds it will return nil as
+// the Error and if it fails you can retrieve the error code using the Code()
+// function. You can check the result against the predefined error codes (like
+// ERR_INVALIDPARAM, ERR_OUTOFMEMORY etc).
+type Error interface {
+	error
+	// Code returns the DirectInput error code for a function. Call this
+	// function only if the Error is not nil, if the error code is DI_OK or any
+	// other code that signifies success, a function will return nil as the
+	// Error instead of a non-nil error with that code in it. This way,
+	// functions behave in a standard Go way, returning nil as the error in case
+	// of success and only returning non-nil errors if something went wrong.
+	Code() int32
+}
 
-func (e Error) Error() string {
+func toErr(result uintptr) Error {
+	res := hResultError(result) // cast to signed int
+	if res >= 0 {
+		return nil
+	}
+	return res
+}
+
+type hResultError int32
+
+func (r hResultError) Code() int32 { return int32(r) }
+
+func (e hResultError) Error() string {
 	switch int64(e) {
 	case ERR_ACQUIRED:
 		return "ERR_ACQUIRED: The operation cannot be performed while the device is acquired."

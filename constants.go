@@ -1,6 +1,8 @@
 package di8
 
-const maxPath = 260
+import "unsafe"
+
+const MAX_PATH = 260
 
 func EFT_GETTYPE(n uint) uint {
 	return n & 0xFF
@@ -67,17 +69,24 @@ func makelong(a, b uint) uint {
 // Check the result against 0 with the comparison operator of your choice, e.g.
 //     SEQUENCE_COMPARE(a, b) < 0
 // to check if sequence value a < b.
-// TODO assure that this really behaves the same as in C.
 func SEQUENCE_COMPARE(seq1, seq2 uint32) int {
-	return int(seq1 - seq2)
+	return int(int32(seq1 - seq2))
 }
 
 func BUTTON_ANY(instance uint) uint {
 	return 0xFF004400 | instance
 }
 
-func JOFS_BUTTON(button int) uint32 {
-	return 48 + uint32(button)
+func JOFS_BUTTON(n int) uint32 {
+	return 48 + uint32(n)
+}
+
+func JOFS_POV(n int) uint32 {
+	return 32 + uint32(4*n)
+}
+
+func JOFS_SLIDER(n int) uint32 {
+	return 24 + uint32(4*n)
 }
 
 const (
@@ -337,39 +346,6 @@ const (
 	PROPCALIBRATIONMODE_COOKED = 0
 	PROPCALIBRATIONMODE_RAW    = 1
 
-	// TODO how to translate these?
-	//#ifdef __cplusplus
-	//#define MAKEDIPROP(prop)    (*(const GUID *)(prop))
-	//#else
-	//#define MAKEDIPROP(prop)    ((REFGUID)(prop))
-	//#endif
-
-	//#define DIPROP_BUFFERSIZE               MAKEDIPROP(1)
-	//#define DIPROP_AXISMODE                 MAKEDIPROP(2)
-	//#define DIPROP_GRANULARITY              MAKEDIPROP(3)
-	//#define DIPROP_RANGE                    MAKEDIPROP(4)
-	//#define DIPROP_DEADZONE                 MAKEDIPROP(5)
-	//#define DIPROP_SATURATION               MAKEDIPROP(6)
-	//#define DIPROP_FFGAIN                   MAKEDIPROP(7)
-	//#define DIPROP_FFLOAD                   MAKEDIPROP(8)
-	//#define DIPROP_AUTOCENTER               MAKEDIPROP(9)
-	//#define DIPROP_CALIBRATIONMODE          MAKEDIPROP(10)
-	//#define DIPROP_CALIBRATION              MAKEDIPROP(11)
-	//#define DIPROP_GUIDANDPATH              MAKEDIPROP(12)
-	//#define DIPROP_INSTANCENAME             MAKEDIPROP(13)
-	//#define DIPROP_PRODUCTNAME              MAKEDIPROP(14)
-	//#define DIPROP_JOYSTICKID               MAKEDIPROP(15)
-	//#define DIPROP_GETPORTDISPLAYNAME       MAKEDIPROP(16)
-	//#define DIPROP_PHYSICALRANGE            MAKEDIPROP(18)
-	//#define DIPROP_LOGICALRANGE             MAKEDIPROP(19)
-	//#define DIPROP_KEYNAME                  MAKEDIPROP(20)
-	//#define DIPROP_CPOINTS                  MAKEDIPROP(21)
-	//#define DIPROP_APPDATA                  MAKEDIPROP(22)
-	//#define DIPROP_SCANCODE                 MAKEDIPROP(23)
-	//#define DIPROP_VIDPID                   MAKEDIPROP(24)
-	//#define DIPROP_USERNAME                 MAKEDIPROP(25)
-	//#define DIPROP_TYPENAME                 MAKEDIPROP(26)
-
 	GDD_PEEK = 0x00000001
 
 	SCL_EXCLUSIVE    = 0x00000001
@@ -404,18 +380,17 @@ const (
 	FEF_INCLUDENONSTANDARD = 0x00000001
 	FEF_MODIFYIFNEEDED     = 0x00000010
 
-	// TODO translate these
-	//#define DIMOFS_X        FIELD_OFFSET(DIMOUSESTATE, lX)
-	//#define DIMOFS_Y        FIELD_OFFSET(DIMOUSESTATE, lY)
-	//#define DIMOFS_Z        FIELD_OFFSET(DIMOUSESTATE, lZ)
-	//#define DIMOFS_BUTTON0 (FIELD_OFFSET(DIMOUSESTATE, rgbButtons) + 0)
-	//#define DIMOFS_BUTTON1 (FIELD_OFFSET(DIMOUSESTATE, rgbButtons) + 1)
-	//#define DIMOFS_BUTTON2 (FIELD_OFFSET(DIMOUSESTATE, rgbButtons) + 2)
-	//#define DIMOFS_BUTTON3 (FIELD_OFFSET(DIMOUSESTATE, rgbButtons) + 3)
-	//#define DIMOFS_BUTTON4 (FIELD_OFFSET(DIMOUSESTATE2, rgbButtons) + 4)
-	//#define DIMOFS_BUTTON5 (FIELD_OFFSET(DIMOUSESTATE2, rgbButtons) + 5)
-	//#define DIMOFS_BUTTON6 (FIELD_OFFSET(DIMOUSESTATE2, rgbButtons) + 6)
-	//#define DIMOFS_BUTTON7 (FIELD_OFFSET(DIMOUSESTATE2, rgbButtons) + 7)
+	MOFS_X       = 0
+	MOFS_Y       = 4
+	MOFS_Z       = 8
+	MOFS_BUTTON0 = 12
+	MOFS_BUTTON1 = 13
+	MOFS_BUTTON2 = 14
+	MOFS_BUTTON3 = 15
+	MOFS_BUTTON4 = 16
+	MOFS_BUTTON5 = 17
+	MOFS_BUTTON6 = 18
+	MOFS_BUTTON7 = 19
 
 	K_ESCAPE       = 0x01
 	K_1            = 0x02
@@ -619,12 +594,6 @@ const (
 	JOFS_BUTTON29 = 77
 	JOFS_BUTTON30 = 78
 	JOFS_BUTTON31 = 79
-
-	// TODO
-	//#define DIJOFS_SLIDER(n)   (FIELD_OFFSET(DIJOYSTATE, rglSlider) + \
-	//                                                       (n) * sizeof(LONG))
-	//#define DIJOFS_POV(n)      (FIELD_OFFSET(DIJOYSTATE, rgdwPOV) + \
-	//                                                       (n) * sizeof(DWORD))
 
 	ENUM_STOP     = 0
 	ENUM_CONTINUE = 1
@@ -843,20 +812,19 @@ const (
 	KEYBOARD_MAIL         = 0x810004EC
 	KEYBOARD_MEDIASELECT  = 0x810004ED
 
-	// TODO
-	//#define DIMOUSE_XAXISAB                         (0x82000200 |DIMOFS_X )
-	//#define DIMOUSE_YAXISAB                         (0x82000200 |DIMOFS_Y )
-	//#define DIMOUSE_XAXIS                           (0x82000300 |DIMOFS_X )
-	//#define DIMOUSE_YAXIS                           (0x82000300 |DIMOFS_Y )
-	//#define DIMOUSE_WHEEL                           (0x82000300 |DIMOFS_Z )
-	//#define DIMOUSE_BUTTON0                         (0x82000400 |DIMOFS_BUTTON0)
-	//#define DIMOUSE_BUTTON1                         (0x82000400 |DIMOFS_BUTTON1)
-	//#define DIMOUSE_BUTTON2                         (0x82000400 |DIMOFS_BUTTON2)
-	//#define DIMOUSE_BUTTON3                         (0x82000400 |DIMOFS_BUTTON3)
-	//#define DIMOUSE_BUTTON4                         (0x82000400 |DIMOFS_BUTTON4)
-	//#define DIMOUSE_BUTTON5                         (0x82000400 |DIMOFS_BUTTON5)
-	//#define DIMOUSE_BUTTON6                         (0x82000400 |DIMOFS_BUTTON6)
-	//#define DIMOUSE_BUTTON7                         (0x82000400 |DIMOFS_BUTTON7)
+	MOUSE_XAXISAB = 0x82000200 | MOFS_X
+	MOUSE_YAXISAB = 0x82000200 | MOFS_Y
+	MOUSE_XAXIS   = 0x82000300 | MOFS_X
+	MOUSE_YAXIS   = 0x82000300 | MOFS_Y
+	MOUSE_WHEEL   = 0x82000300 | MOFS_Z
+	MOUSE_BUTTON0 = 0x82000400 | MOFS_BUTTON0
+	MOUSE_BUTTON1 = 0x82000400 | MOFS_BUTTON1
+	MOUSE_BUTTON2 = 0x82000400 | MOFS_BUTTON2
+	MOUSE_BUTTON3 = 0x82000400 | MOFS_BUTTON3
+	MOUSE_BUTTON4 = 0x82000400 | MOFS_BUTTON4
+	MOUSE_BUTTON5 = 0x82000400 | MOFS_BUTTON5
+	MOUSE_BUTTON6 = 0x82000400 | MOFS_BUTTON6
+	MOUSE_BUTTON7 = 0x82000400 | MOFS_BUTTON7
 
 	VOICE_CHANNEL1     = 0x83000401
 	VOICE_CHANNEL2     = 0x83000402
@@ -1867,4 +1835,2366 @@ const (
 	JOY_HWS_ISGAMEPORTBUS      = 0x80000000
 	JOY_HWS_GAMEPORTBUSBUSY    = 0x00000001
 	JOY_US_VOLATILE            = 0x00000008
+)
+
+var (
+	CLSID_DirectInput        = GUID{0x25E609E0, 0xB259, 0x11CF, [8]byte{0xBF, 0xC7, 0x44, 0x45, 0x53, 0x54, 0x00, 0x00}}
+	CLSID_DirectInputDevice  = GUID{0x25E609E1, 0xB259, 0x11CF, [8]byte{0xBF, 0xC7, 0x44, 0x45, 0x53, 0x54, 0x00, 0x00}}
+	CLSID_DirectInput8       = GUID{0x25E609E4, 0xB259, 0x11CF, [8]byte{0xBF, 0xC7, 0x44, 0x45, 0x53, 0x54, 0x00, 0x00}}
+	CLSID_DirectInputDevice8 = GUID{0x25E609E5, 0xB259, 0x11CF, [8]byte{0xBF, 0xC7, 0x44, 0x45, 0x53, 0x54, 0x00, 0x00}}
+	IID_IDirectInputA        = GUID{0x89521360, 0xAA8A, 0x11CF, [8]byte{0xBF, 0xC7, 0x44, 0x45, 0x53, 0x54, 0x00, 0x00}}
+	IID_IDirectInputW        = GUID{0x89521361, 0xAA8A, 0x11CF, [8]byte{0xBF, 0xC7, 0x44, 0x45, 0x53, 0x54, 0x00, 0x00}}
+	IID_IDirectInput         = IID_IDirectInputW
+	IID_IDirectInput2A       = GUID{0x5944E662, 0xAA8A, 0x11CF, [8]byte{0xBF, 0xC7, 0x44, 0x45, 0x53, 0x54, 0x00, 0x00}}
+	IID_IDirectInput2W       = GUID{0x5944E663, 0xAA8A, 0x11CF, [8]byte{0xBF, 0xC7, 0x44, 0x45, 0x53, 0x54, 0x00, 0x00}}
+	IID_IDirectInput2        = IID_IDirectInput2W
+	IID_IDirectInput7A       = GUID{0x9A4CB684, 0x236D, 0x11D3, [8]byte{0x8E, 0x9D, 0x00, 0xC0, 0x4F, 0x68, 0x44, 0xAE}}
+	IID_IDirectInput7W       = GUID{0x9A4CB685, 0x236D, 0x11D3, [8]byte{0x8E, 0x9D, 0x00, 0xC0, 0x4F, 0x68, 0x44, 0xAE}}
+	IID_IDirectInput7        = IID_IDirectInput7W
+	IID_IDirectInput8A       = GUID{0xBF798030, 0x483A, 0x4DA2, [8]byte{0xAA, 0x99, 0x5D, 0x64, 0xED, 0x36, 0x97, 0x00}}
+	IID_IDirectInput8W       = GUID{0xBF798031, 0x483A, 0x4DA2, [8]byte{0xAA, 0x99, 0x5D, 0x64, 0xED, 0x36, 0x97, 0x00}}
+	IID_IDirectInput8        = IID_IDirectInput8W
+	IID_IDirectInputDeviceA  = GUID{0x5944E680, 0xC92E, 0x11CF, [8]byte{0xBF, 0xC7, 0x44, 0x45, 0x53, 0x54, 0x00, 0x00}}
+	IID_IDirectInputDeviceW  = GUID{0x5944E681, 0xC92E, 0x11CF, [8]byte{0xBF, 0xC7, 0x44, 0x45, 0x53, 0x54, 0x00, 0x00}}
+	IID_IDirectInputDevice   = IID_IDirectInputDeviceW
+	IID_IDirectInputDevice2A = GUID{0x5944E682, 0xC92E, 0x11CF, [8]byte{0xBF, 0xC7, 0x44, 0x45, 0x53, 0x54, 0x00, 0x00}}
+	IID_IDirectInputDevice2W = GUID{0x5944E683, 0xC92E, 0x11CF, [8]byte{0xBF, 0xC7, 0x44, 0x45, 0x53, 0x54, 0x00, 0x00}}
+	IID_IDirectInputDevice2  = IID_IDirectInputDevice2W
+	IID_IDirectInputDevice7A = GUID{0x57D7C6BC, 0x2356, 0x11D3, [8]byte{0x8E, 0x9D, 0x00, 0xC0, 0x4F, 0x68, 0x44, 0xAE}}
+	IID_IDirectInputDevice7W = GUID{0x57D7C6BD, 0x2356, 0x11D3, [8]byte{0x8E, 0x9D, 0x00, 0xC0, 0x4F, 0x68, 0x44, 0xAE}}
+	IID_IDirectInputDevice7  = IID_IDirectInputDevice7W
+	IID_IDirectInputDevice8A = GUID{0x54D41080, 0xDC15, 0x4833, [8]byte{0xA4, 0x1B, 0x74, 0x8F, 0x73, 0xA3, 0x81, 0x79}}
+	IID_IDirectInputDevice8W = GUID{0x54D41081, 0xDC15, 0x4833, [8]byte{0xA4, 0x1B, 0x74, 0x8F, 0x73, 0xA3, 0x81, 0x79}}
+	IID_IDirectInputDevice8  = IID_IDirectInputDevice8W
+	IID_IDirectInputEffect   = GUID{0xE7E1F7C0, 0x88D2, 0x11D0, [8]byte{0x9A, 0xD0, 0x00, 0xA0, 0xC9, 0xA0, 0x6E, 0x35}}
+	GUID_XAxis               = GUID{0xA36D02E0, 0xC9F3, 0x11CF, [8]byte{0xBF, 0xC7, 0x44, 0x45, 0x53, 0x54, 0x00, 0x00}}
+	GUID_YAxis               = GUID{0xA36D02E1, 0xC9F3, 0x11CF, [8]byte{0xBF, 0xC7, 0x44, 0x45, 0x53, 0x54, 0x00, 0x00}}
+	GUID_ZAxis               = GUID{0xA36D02E2, 0xC9F3, 0x11CF, [8]byte{0xBF, 0xC7, 0x44, 0x45, 0x53, 0x54, 0x00, 0x00}}
+	GUID_RxAxis              = GUID{0xA36D02F4, 0xC9F3, 0x11CF, [8]byte{0xBF, 0xC7, 0x44, 0x45, 0x53, 0x54, 0x00, 0x00}}
+	GUID_RyAxis              = GUID{0xA36D02F5, 0xC9F3, 0x11CF, [8]byte{0xBF, 0xC7, 0x44, 0x45, 0x53, 0x54, 0x00, 0x00}}
+	GUID_RzAxis              = GUID{0xA36D02E3, 0xC9F3, 0x11CF, [8]byte{0xBF, 0xC7, 0x44, 0x45, 0x53, 0x54, 0x00, 0x00}}
+	GUID_Slider              = GUID{0xA36D02E4, 0xC9F3, 0x11CF, [8]byte{0xBF, 0xC7, 0x44, 0x45, 0x53, 0x54, 0x00, 0x00}}
+	GUID_Button              = GUID{0xA36D02F0, 0xC9F3, 0x11CF, [8]byte{0xBF, 0xC7, 0x44, 0x45, 0x53, 0x54, 0x00, 0x00}}
+	GUID_Key                 = GUID{0x55728220, 0xD33C, 0x11CF, [8]byte{0xBF, 0xC7, 0x44, 0x45, 0x53, 0x54, 0x00, 0x00}}
+	GUID_POV                 = GUID{0xA36D02F2, 0xC9F3, 0x11CF, [8]byte{0xBF, 0xC7, 0x44, 0x45, 0x53, 0x54, 0x00, 0x00}}
+	GUID_Unknown             = GUID{0xA36D02F3, 0xC9F3, 0x11CF, [8]byte{0xBF, 0xC7, 0x44, 0x45, 0x53, 0x54, 0x00, 0x00}}
+	GUID_SysMouse            = GUID{0x6F1D2B60, 0xD5A0, 0x11CF, [8]byte{0xBF, 0xC7, 0x44, 0x45, 0x53, 0x54, 0x00, 0x00}}
+	GUID_SysKeyboard         = GUID{0x6F1D2B61, 0xD5A0, 0x11CF, [8]byte{0xBF, 0xC7, 0x44, 0x45, 0x53, 0x54, 0x00, 0x00}}
+	GUID_Joystick            = GUID{0x6F1D2B70, 0xD5A0, 0x11CF, [8]byte{0xBF, 0xC7, 0x44, 0x45, 0x53, 0x54, 0x00, 0x00}}
+	GUID_SysMouseEm          = GUID{0x6F1D2B80, 0xD5A0, 0x11CF, [8]byte{0xBF, 0xC7, 0x44, 0x45, 0x53, 0x54, 0x00, 0x00}}
+	GUID_SysMouseEm2         = GUID{0x6F1D2B81, 0xD5A0, 0x11CF, [8]byte{0xBF, 0xC7, 0x44, 0x45, 0x53, 0x54, 0x00, 0x00}}
+	GUID_SysKeyboardEm       = GUID{0x6F1D2B82, 0xD5A0, 0x11CF, [8]byte{0xBF, 0xC7, 0x44, 0x45, 0x53, 0x54, 0x00, 0x00}}
+	GUID_SysKeyboardEm2      = GUID{0x6F1D2B83, 0xD5A0, 0x11CF, [8]byte{0xBF, 0xC7, 0x44, 0x45, 0x53, 0x54, 0x00, 0x00}}
+	GUID_ConstantForce       = GUID{0x13541C20, 0x8E33, 0x11D0, [8]byte{0x9A, 0xD0, 0x00, 0xA0, 0xC9, 0xA0, 0x6E, 0x35}}
+	GUID_RampForce           = GUID{0x13541C21, 0x8E33, 0x11D0, [8]byte{0x9A, 0xD0, 0x00, 0xA0, 0xC9, 0xA0, 0x6E, 0x35}}
+	GUID_Square              = GUID{0x13541C22, 0x8E33, 0x11D0, [8]byte{0x9A, 0xD0, 0x00, 0xA0, 0xC9, 0xA0, 0x6E, 0x35}}
+	GUID_Sine                = GUID{0x13541C23, 0x8E33, 0x11D0, [8]byte{0x9A, 0xD0, 0x00, 0xA0, 0xC9, 0xA0, 0x6E, 0x35}}
+	GUID_Triangle            = GUID{0x13541C24, 0x8E33, 0x11D0, [8]byte{0x9A, 0xD0, 0x00, 0xA0, 0xC9, 0xA0, 0x6E, 0x35}}
+	GUID_SawtoothUp          = GUID{0x13541C25, 0x8E33, 0x11D0, [8]byte{0x9A, 0xD0, 0x00, 0xA0, 0xC9, 0xA0, 0x6E, 0x35}}
+	GUID_SawtoothDown        = GUID{0x13541C26, 0x8E33, 0x11D0, [8]byte{0x9A, 0xD0, 0x00, 0xA0, 0xC9, 0xA0, 0x6E, 0x35}}
+	GUID_Spring              = GUID{0x13541C27, 0x8E33, 0x11D0, [8]byte{0x9A, 0xD0, 0x00, 0xA0, 0xC9, 0xA0, 0x6E, 0x35}}
+	GUID_Damper              = GUID{0x13541C28, 0x8E33, 0x11D0, [8]byte{0x9A, 0xD0, 0x00, 0xA0, 0xC9, 0xA0, 0x6E, 0x35}}
+	GUID_Inertia             = GUID{0x13541C29, 0x8E33, 0x11D0, [8]byte{0x9A, 0xD0, 0x00, 0xA0, 0xC9, 0xA0, 0x6E, 0x35}}
+	GUID_Friction            = GUID{0x13541C2A, 0x8E33, 0x11D0, [8]byte{0x9A, 0xD0, 0x00, 0xA0, 0xC9, 0xA0, 0x6E, 0x35}}
+	GUID_CustomForce         = GUID{0x13541C2B, 0x8E33, 0x11D0, [8]byte{0x9A, 0xD0, 0x00, 0xA0, 0xC9, 0xA0, 0x6E, 0x35}}
+
+	dataformat       DATAFORMAT
+	objectdataformat OBJECTDATAFORMAT
+
+	Keyboard = DATAFORMAT{
+		Size:     uint32(unsafe.Sizeof(dataformat)),
+		ObjSize:  uint32(unsafe.Sizeof(objectdataformat)),
+		Flags:    2,
+		DataSize: 256,
+		NumObjs:  256,
+		Rgodf: &[]OBJECTDATAFORMAT{
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  0,
+				Type: 0X8000000C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  1,
+				Type: 0X8000010C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  2,
+				Type: 0X8000020C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  3,
+				Type: 0X8000030C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  4,
+				Type: 0X8000040C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  5,
+				Type: 0X8000050C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  6,
+				Type: 0X8000060C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  7,
+				Type: 0X8000070C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  8,
+				Type: 0X8000080C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  9,
+				Type: 0X8000090C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  10,
+				Type: 0X80000A0C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  11,
+				Type: 0X80000B0C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  12,
+				Type: 0X80000C0C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  13,
+				Type: 0X80000D0C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  14,
+				Type: 0X80000E0C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  15,
+				Type: 0X80000F0C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  16,
+				Type: 0X8000100C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  17,
+				Type: 0X8000110C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  18,
+				Type: 0X8000120C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  19,
+				Type: 0X8000130C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  20,
+				Type: 0X8000140C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  21,
+				Type: 0X8000150C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  22,
+				Type: 0X8000160C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  23,
+				Type: 0X8000170C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  24,
+				Type: 0X8000180C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  25,
+				Type: 0X8000190C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  26,
+				Type: 0X80001A0C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  27,
+				Type: 0X80001B0C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  28,
+				Type: 0X80001C0C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  29,
+				Type: 0X80001D0C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  30,
+				Type: 0X80001E0C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  31,
+				Type: 0X80001F0C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  32,
+				Type: 0X8000200C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  33,
+				Type: 0X8000210C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  34,
+				Type: 0X8000220C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  35,
+				Type: 0X8000230C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  36,
+				Type: 0X8000240C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  37,
+				Type: 0X8000250C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  38,
+				Type: 0X8000260C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  39,
+				Type: 0X8000270C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  40,
+				Type: 0X8000280C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  41,
+				Type: 0X8000290C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  42,
+				Type: 0X80002A0C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  43,
+				Type: 0X80002B0C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  44,
+				Type: 0X80002C0C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  45,
+				Type: 0X80002D0C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  46,
+				Type: 0X80002E0C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  47,
+				Type: 0X80002F0C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  48,
+				Type: 0X8000300C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  49,
+				Type: 0X8000310C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  50,
+				Type: 0X8000320C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  51,
+				Type: 0X8000330C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  52,
+				Type: 0X8000340C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  53,
+				Type: 0X8000350C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  54,
+				Type: 0X8000360C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  55,
+				Type: 0X8000370C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  56,
+				Type: 0X8000380C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  57,
+				Type: 0X8000390C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  58,
+				Type: 0X80003A0C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  59,
+				Type: 0X80003B0C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  60,
+				Type: 0X80003C0C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  61,
+				Type: 0X80003D0C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  62,
+				Type: 0X80003E0C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  63,
+				Type: 0X80003F0C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  64,
+				Type: 0X8000400C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  65,
+				Type: 0X8000410C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  66,
+				Type: 0X8000420C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  67,
+				Type: 0X8000430C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  68,
+				Type: 0X8000440C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  69,
+				Type: 0X8000450C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  70,
+				Type: 0X8000460C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  71,
+				Type: 0X8000470C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  72,
+				Type: 0X8000480C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  73,
+				Type: 0X8000490C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  74,
+				Type: 0X80004A0C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  75,
+				Type: 0X80004B0C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  76,
+				Type: 0X80004C0C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  77,
+				Type: 0X80004D0C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  78,
+				Type: 0X80004E0C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  79,
+				Type: 0X80004F0C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  80,
+				Type: 0X8000500C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  81,
+				Type: 0X8000510C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  82,
+				Type: 0X8000520C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  83,
+				Type: 0X8000530C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  84,
+				Type: 0X8000540C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  85,
+				Type: 0X8000550C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  86,
+				Type: 0X8000560C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  87,
+				Type: 0X8000570C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  88,
+				Type: 0X8000580C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  89,
+				Type: 0X8000590C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  90,
+				Type: 0X80005A0C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  91,
+				Type: 0X80005B0C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  92,
+				Type: 0X80005C0C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  93,
+				Type: 0X80005D0C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  94,
+				Type: 0X80005E0C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  95,
+				Type: 0X80005F0C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  96,
+				Type: 0X8000600C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  97,
+				Type: 0X8000610C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  98,
+				Type: 0X8000620C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  99,
+				Type: 0X8000630C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  100,
+				Type: 0X8000640C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  101,
+				Type: 0X8000650C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  102,
+				Type: 0X8000660C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  103,
+				Type: 0X8000670C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  104,
+				Type: 0X8000680C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  105,
+				Type: 0X8000690C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  106,
+				Type: 0X80006A0C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  107,
+				Type: 0X80006B0C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  108,
+				Type: 0X80006C0C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  109,
+				Type: 0X80006D0C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  110,
+				Type: 0X80006E0C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  111,
+				Type: 0X80006F0C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  112,
+				Type: 0X8000700C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  113,
+				Type: 0X8000710C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  114,
+				Type: 0X8000720C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  115,
+				Type: 0X8000730C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  116,
+				Type: 0X8000740C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  117,
+				Type: 0X8000750C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  118,
+				Type: 0X8000760C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  119,
+				Type: 0X8000770C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  120,
+				Type: 0X8000780C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  121,
+				Type: 0X8000790C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  122,
+				Type: 0X80007A0C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  123,
+				Type: 0X80007B0C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  124,
+				Type: 0X80007C0C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  125,
+				Type: 0X80007D0C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  126,
+				Type: 0X80007E0C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  127,
+				Type: 0X80007F0C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  128,
+				Type: 0X8000800C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  129,
+				Type: 0X8000810C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  130,
+				Type: 0X8000820C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  131,
+				Type: 0X8000830C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  132,
+				Type: 0X8000840C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  133,
+				Type: 0X8000850C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  134,
+				Type: 0X8000860C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  135,
+				Type: 0X8000870C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  136,
+				Type: 0X8000880C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  137,
+				Type: 0X8000890C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  138,
+				Type: 0X80008A0C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  139,
+				Type: 0X80008B0C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  140,
+				Type: 0X80008C0C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  141,
+				Type: 0X80008D0C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  142,
+				Type: 0X80008E0C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  143,
+				Type: 0X80008F0C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  144,
+				Type: 0X8000900C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  145,
+				Type: 0X8000910C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  146,
+				Type: 0X8000920C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  147,
+				Type: 0X8000930C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  148,
+				Type: 0X8000940C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  149,
+				Type: 0X8000950C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  150,
+				Type: 0X8000960C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  151,
+				Type: 0X8000970C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  152,
+				Type: 0X8000980C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  153,
+				Type: 0X8000990C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  154,
+				Type: 0X80009A0C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  155,
+				Type: 0X80009B0C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  156,
+				Type: 0X80009C0C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  157,
+				Type: 0X80009D0C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  158,
+				Type: 0X80009E0C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  159,
+				Type: 0X80009F0C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  160,
+				Type: 0X8000A00C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  161,
+				Type: 0X8000A10C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  162,
+				Type: 0X8000A20C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  163,
+				Type: 0X8000A30C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  164,
+				Type: 0X8000A40C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  165,
+				Type: 0X8000A50C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  166,
+				Type: 0X8000A60C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  167,
+				Type: 0X8000A70C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  168,
+				Type: 0X8000A80C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  169,
+				Type: 0X8000A90C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  170,
+				Type: 0X8000AA0C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  171,
+				Type: 0X8000AB0C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  172,
+				Type: 0X8000AC0C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  173,
+				Type: 0X8000AD0C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  174,
+				Type: 0X8000AE0C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  175,
+				Type: 0X8000AF0C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  176,
+				Type: 0X8000B00C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  177,
+				Type: 0X8000B10C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  178,
+				Type: 0X8000B20C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  179,
+				Type: 0X8000B30C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  180,
+				Type: 0X8000B40C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  181,
+				Type: 0X8000B50C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  182,
+				Type: 0X8000B60C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  183,
+				Type: 0X8000B70C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  184,
+				Type: 0X8000B80C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  185,
+				Type: 0X8000B90C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  186,
+				Type: 0X8000BA0C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  187,
+				Type: 0X8000BB0C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  188,
+				Type: 0X8000BC0C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  189,
+				Type: 0X8000BD0C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  190,
+				Type: 0X8000BE0C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  191,
+				Type: 0X8000BF0C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  192,
+				Type: 0X8000C00C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  193,
+				Type: 0X8000C10C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  194,
+				Type: 0X8000C20C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  195,
+				Type: 0X8000C30C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  196,
+				Type: 0X8000C40C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  197,
+				Type: 0X8000C50C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  198,
+				Type: 0X8000C60C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  199,
+				Type: 0X8000C70C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  200,
+				Type: 0X8000C80C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  201,
+				Type: 0X8000C90C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  202,
+				Type: 0X8000CA0C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  203,
+				Type: 0X8000CB0C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  204,
+				Type: 0X8000CC0C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  205,
+				Type: 0X8000CD0C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  206,
+				Type: 0X8000CE0C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  207,
+				Type: 0X8000CF0C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  208,
+				Type: 0X8000D00C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  209,
+				Type: 0X8000D10C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  210,
+				Type: 0X8000D20C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  211,
+				Type: 0X8000D30C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  212,
+				Type: 0X8000D40C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  213,
+				Type: 0X8000D50C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  214,
+				Type: 0X8000D60C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  215,
+				Type: 0X8000D70C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  216,
+				Type: 0X8000D80C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  217,
+				Type: 0X8000D90C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  218,
+				Type: 0X8000DA0C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  219,
+				Type: 0X8000DB0C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  220,
+				Type: 0X8000DC0C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  221,
+				Type: 0X8000DD0C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  222,
+				Type: 0X8000DE0C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  223,
+				Type: 0X8000DF0C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  224,
+				Type: 0X8000E00C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  225,
+				Type: 0X8000E10C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  226,
+				Type: 0X8000E20C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  227,
+				Type: 0X8000E30C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  228,
+				Type: 0X8000E40C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  229,
+				Type: 0X8000E50C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  230,
+				Type: 0X8000E60C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  231,
+				Type: 0X8000E70C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  232,
+				Type: 0X8000E80C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  233,
+				Type: 0X8000E90C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  234,
+				Type: 0X8000EA0C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  235,
+				Type: 0X8000EB0C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  236,
+				Type: 0X8000EC0C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  237,
+				Type: 0X8000ED0C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  238,
+				Type: 0X8000EE0C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  239,
+				Type: 0X8000EF0C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  240,
+				Type: 0X8000F00C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  241,
+				Type: 0X8000F10C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  242,
+				Type: 0X8000F20C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  243,
+				Type: 0X8000F30C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  244,
+				Type: 0X8000F40C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  245,
+				Type: 0X8000F50C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  246,
+				Type: 0X8000F60C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  247,
+				Type: 0X8000F70C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  248,
+				Type: 0X8000F80C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  249,
+				Type: 0X8000F90C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  250,
+				Type: 0X8000FA0C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  251,
+				Type: 0X8000FB0C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  252,
+				Type: 0X8000FC0C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  253,
+				Type: 0X8000FD0C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  254,
+				Type: 0X8000FE0C,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_Key,
+				Ofs:  255,
+				Type: 0X8000FF0C,
+			},
+		}[0],
+	}
+
+	Mouse = DATAFORMAT{
+		Size:     uint32(unsafe.Sizeof(dataformat)),
+		ObjSize:  uint32(unsafe.Sizeof(objectdataformat)),
+		Flags:    2,
+		DataSize: 16,
+		NumObjs:  7,
+		Rgodf: &[]OBJECTDATAFORMAT{
+			OBJECTDATAFORMAT{
+				Guid: &GUID_XAxis,
+				Ofs:  0,
+				Type: 0xFFFF03,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_YAxis,
+				Ofs:  4,
+				Type: 0xFFFF03,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_ZAxis,
+				Ofs:  8,
+				Type: 0x80FFFF03,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  12,
+				Type: 0xFFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  13,
+				Type: 0xFFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  14,
+				Type: 0x80FFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  15,
+				Type: 0x80FFFF0C,
+			},
+		}[0],
+	}
+
+	Joystick = DATAFORMAT{
+		Size:     uint32(unsafe.Sizeof(dataformat)),
+		ObjSize:  uint32(unsafe.Sizeof(objectdataformat)),
+		Flags:    1,
+		DataSize: 80,
+		NumObjs:  44,
+		Rgodf: &[]OBJECTDATAFORMAT{
+			OBJECTDATAFORMAT{
+				Guid:  &GUID_XAxis,
+				Ofs:   0,
+				Type:  0x80FFFF03,
+				Flags: 256,
+			},
+			OBJECTDATAFORMAT{
+				Guid:  &GUID_YAxis,
+				Ofs:   4,
+				Type:  0x80FFFF03,
+				Flags: 256,
+			},
+			OBJECTDATAFORMAT{
+				Guid:  &GUID_ZAxis,
+				Ofs:   8,
+				Type:  0x80FFFF03,
+				Flags: 256,
+			},
+			OBJECTDATAFORMAT{
+				Guid:  &GUID_RxAxis,
+				Ofs:   12,
+				Type:  0x80FFFF03,
+				Flags: 256,
+			},
+			OBJECTDATAFORMAT{
+				Guid:  &GUID_RyAxis,
+				Ofs:   16,
+				Type:  0x80FFFF03,
+				Flags: 256,
+			},
+			OBJECTDATAFORMAT{
+				Guid:  &GUID_RzAxis,
+				Ofs:   20,
+				Type:  0x80FFFF03,
+				Flags: 256,
+			},
+			OBJECTDATAFORMAT{
+				Guid:  &GUID_Slider,
+				Ofs:   24,
+				Type:  0x80FFFF03,
+				Flags: 256,
+			},
+			OBJECTDATAFORMAT{
+				Guid:  &GUID_Slider,
+				Ofs:   28,
+				Type:  0x80FFFF03,
+				Flags: 256,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_POV,
+				Ofs:  32,
+				Type: 0x80FFFF10,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_POV,
+				Ofs:  36,
+				Type: 0x80FFFF10,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_POV,
+				Ofs:  40,
+				Type: 0x80FFFF10,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_POV,
+				Ofs:  44,
+				Type: 0x80FFFF10,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  48,
+				Type: 0x80FFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  49,
+				Type: 0x80FFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  50,
+				Type: 0x80FFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  51,
+				Type: 0x80FFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  52,
+				Type: 0x80FFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  53,
+				Type: 0x80FFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  54,
+				Type: 0x80FFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  55,
+				Type: 0x80FFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  56,
+				Type: 0x80FFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  57,
+				Type: 0x80FFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  58,
+				Type: 0x80FFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  59,
+				Type: 0x80FFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  60,
+				Type: 0x80FFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  61,
+				Type: 0x80FFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  62,
+				Type: 0x80FFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  63,
+				Type: 0x80FFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  64,
+				Type: 0x80FFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  65,
+				Type: 0x80FFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  66,
+				Type: 0x80FFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  67,
+				Type: 0x80FFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  68,
+				Type: 0x80FFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  69,
+				Type: 0x80FFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  70,
+				Type: 0x80FFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  71,
+				Type: 0x80FFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  72,
+				Type: 0x80FFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  73,
+				Type: 0x80FFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  74,
+				Type: 0x80FFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  75,
+				Type: 0x80FFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  76,
+				Type: 0x80FFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  77,
+				Type: 0x80FFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  78,
+				Type: 0x80FFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  79,
+				Type: 0x80FFFF0C,
+			},
+		}[0],
+	}
+
+	Joystick2 = DATAFORMAT{
+		Size:     uint32(unsafe.Sizeof(dataformat)),
+		ObjSize:  uint32(unsafe.Sizeof(objectdataformat)),
+		Flags:    1,
+		DataSize: 272,
+		NumObjs:  164,
+		Rgodf: &[]OBJECTDATAFORMAT{
+			OBJECTDATAFORMAT{
+				Guid:  &GUID_XAxis,
+				Ofs:   0,
+				Type:  0x80FFFF03,
+				Flags: 256,
+			},
+			OBJECTDATAFORMAT{
+				Guid:  &GUID_YAxis,
+				Ofs:   4,
+				Type:  0x80FFFF03,
+				Flags: 256,
+			},
+			OBJECTDATAFORMAT{
+				Guid:  &GUID_ZAxis,
+				Ofs:   8,
+				Type:  0x80FFFF03,
+				Flags: 256,
+			},
+			OBJECTDATAFORMAT{
+				Guid:  &GUID_RxAxis,
+				Ofs:   12,
+				Type:  0x80FFFF03,
+				Flags: 256,
+			},
+			OBJECTDATAFORMAT{
+				Guid:  &GUID_RyAxis,
+				Ofs:   16,
+				Type:  0x80FFFF03,
+				Flags: 256,
+			},
+			OBJECTDATAFORMAT{
+				Guid:  &GUID_RzAxis,
+				Ofs:   20,
+				Type:  0x80FFFF03,
+				Flags: 256,
+			},
+			OBJECTDATAFORMAT{
+				Guid:  &GUID_Slider,
+				Ofs:   24,
+				Type:  0x80FFFF03,
+				Flags: 256,
+			},
+			OBJECTDATAFORMAT{
+				Guid:  &GUID_Slider,
+				Ofs:   28,
+				Type:  0x80FFFF03,
+				Flags: 256,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_POV,
+				Ofs:  32,
+				Type: 0x80FFFF10,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_POV,
+				Ofs:  36,
+				Type: 0x80FFFF10,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_POV,
+				Ofs:  40,
+				Type: 0x80FFFF10,
+			},
+			OBJECTDATAFORMAT{
+				Guid: &GUID_POV,
+				Ofs:  44,
+				Type: 0x80FFFF10,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  48,
+				Type: 0x80FFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  49,
+				Type: 0x80FFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  50,
+				Type: 0x80FFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  51,
+				Type: 0x80FFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  52,
+				Type: 0x80FFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  53,
+				Type: 0x80FFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  54,
+				Type: 0x80FFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  55,
+				Type: 0x80FFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  56,
+				Type: 0x80FFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  57,
+				Type: 0x80FFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  58,
+				Type: 0x80FFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  59,
+				Type: 0x80FFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  60,
+				Type: 0x80FFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  61,
+				Type: 0x80FFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  62,
+				Type: 0x80FFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  63,
+				Type: 0x80FFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  64,
+				Type: 0x80FFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  65,
+				Type: 0x80FFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  66,
+				Type: 0x80FFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  67,
+				Type: 0x80FFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  68,
+				Type: 0x80FFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  69,
+				Type: 0x80FFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  70,
+				Type: 0x80FFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  71,
+				Type: 0x80FFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  72,
+				Type: 0x80FFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  73,
+				Type: 0x80FFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  74,
+				Type: 0x80FFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  75,
+				Type: 0x80FFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  76,
+				Type: 0x80FFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  77,
+				Type: 0x80FFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  78,
+				Type: 0x80FFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  79,
+				Type: 0x80FFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  80,
+				Type: 0x80FFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  81,
+				Type: 0x80FFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  82,
+				Type: 0x80FFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  83,
+				Type: 0x80FFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  84,
+				Type: 0x80FFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  85,
+				Type: 0x80FFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  86,
+				Type: 0x80FFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  87,
+				Type: 0x80FFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  88,
+				Type: 0x80FFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  89,
+				Type: 0x80FFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  90,
+				Type: 0x80FFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  91,
+				Type: 0x80FFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  92,
+				Type: 0x80FFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  93,
+				Type: 0x80FFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  94,
+				Type: 0x80FFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  95,
+				Type: 0x80FFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  96,
+				Type: 0x80FFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  97,
+				Type: 0x80FFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  98,
+				Type: 0x80FFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  99,
+				Type: 0x80FFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  100,
+				Type: 0x80FFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  101,
+				Type: 0x80FFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  102,
+				Type: 0x80FFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  103,
+				Type: 0x80FFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  104,
+				Type: 0x80FFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  105,
+				Type: 0x80FFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  106,
+				Type: 0x80FFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  107,
+				Type: 0x80FFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  108,
+				Type: 0x80FFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  109,
+				Type: 0x80FFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  110,
+				Type: 0x80FFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  111,
+				Type: 0x80FFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  112,
+				Type: 0x80FFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  113,
+				Type: 0x80FFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  114,
+				Type: 0x80FFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  115,
+				Type: 0x80FFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  116,
+				Type: 0x80FFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  117,
+				Type: 0x80FFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  118,
+				Type: 0x80FFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  119,
+				Type: 0x80FFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  120,
+				Type: 0x80FFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  121,
+				Type: 0x80FFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  122,
+				Type: 0x80FFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  123,
+				Type: 0x80FFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  124,
+				Type: 0x80FFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  125,
+				Type: 0x80FFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  126,
+				Type: 0x80FFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  127,
+				Type: 0x80FFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  128,
+				Type: 0x80FFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  129,
+				Type: 0x80FFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  130,
+				Type: 0x80FFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  131,
+				Type: 0x80FFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  132,
+				Type: 0x80FFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  133,
+				Type: 0x80FFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  134,
+				Type: 0x80FFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  135,
+				Type: 0x80FFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  136,
+				Type: 0x80FFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  137,
+				Type: 0x80FFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  138,
+				Type: 0x80FFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  139,
+				Type: 0x80FFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  140,
+				Type: 0x80FFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  141,
+				Type: 0x80FFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  142,
+				Type: 0x80FFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  143,
+				Type: 0x80FFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  144,
+				Type: 0x80FFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  145,
+				Type: 0x80FFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  146,
+				Type: 0x80FFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  147,
+				Type: 0x80FFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  148,
+				Type: 0x80FFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  149,
+				Type: 0x80FFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  150,
+				Type: 0x80FFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  151,
+				Type: 0x80FFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  152,
+				Type: 0x80FFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  153,
+				Type: 0x80FFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  154,
+				Type: 0x80FFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  155,
+				Type: 0x80FFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  156,
+				Type: 0x80FFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  157,
+				Type: 0x80FFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  158,
+				Type: 0x80FFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  159,
+				Type: 0x80FFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  160,
+				Type: 0x80FFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  161,
+				Type: 0x80FFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  162,
+				Type: 0x80FFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  163,
+				Type: 0x80FFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  164,
+				Type: 0x80FFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  165,
+				Type: 0x80FFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  166,
+				Type: 0x80FFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  167,
+				Type: 0x80FFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  168,
+				Type: 0x80FFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  169,
+				Type: 0x80FFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  170,
+				Type: 0x80FFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  171,
+				Type: 0x80FFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  172,
+				Type: 0x80FFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  173,
+				Type: 0x80FFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  174,
+				Type: 0x80FFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Ofs:  175,
+				Type: 0x80FFFF0C,
+			},
+			OBJECTDATAFORMAT{
+				Guid:  &GUID_XAxis,
+				Ofs:   176,
+				Type:  0x80FFFF03,
+				Flags: 512,
+			},
+			OBJECTDATAFORMAT{
+				Guid:  &GUID_YAxis,
+				Ofs:   180,
+				Type:  0x80FFFF03,
+				Flags: 512,
+			},
+			OBJECTDATAFORMAT{
+				Guid:  &GUID_ZAxis,
+				Ofs:   184,
+				Type:  0x80FFFF03,
+				Flags: 512,
+			},
+			OBJECTDATAFORMAT{
+				Guid:  &GUID_RxAxis,
+				Ofs:   188,
+				Type:  0x80FFFF03,
+				Flags: 512,
+			},
+			OBJECTDATAFORMAT{
+				Guid:  &GUID_RyAxis,
+				Ofs:   192,
+				Type:  0x80FFFF03,
+				Flags: 512,
+			},
+			OBJECTDATAFORMAT{
+				Guid:  &GUID_RzAxis,
+				Ofs:   196,
+				Type:  0x80FFFF03,
+				Flags: 512,
+			},
+			OBJECTDATAFORMAT{
+				Guid:  &GUID_Slider,
+				Ofs:   24,
+				Type:  0x80FFFF03,
+				Flags: 512,
+			},
+			OBJECTDATAFORMAT{
+				Guid:  &GUID_Slider,
+				Ofs:   28,
+				Type:  0x80FFFF03,
+				Flags: 512,
+			},
+			OBJECTDATAFORMAT{
+				Guid:  &GUID_XAxis,
+				Ofs:   208,
+				Type:  0x80FFFF03,
+				Flags: 768,
+			},
+			OBJECTDATAFORMAT{
+				Guid:  &GUID_YAxis,
+				Ofs:   212,
+				Type:  0x80FFFF03,
+				Flags: 768,
+			},
+			OBJECTDATAFORMAT{
+				Guid:  &GUID_ZAxis,
+				Ofs:   216,
+				Type:  0x80FFFF03,
+				Flags: 768,
+			},
+			OBJECTDATAFORMAT{
+				Guid:  &GUID_RxAxis,
+				Ofs:   220,
+				Type:  0x80FFFF03,
+				Flags: 768,
+			},
+			OBJECTDATAFORMAT{
+				Guid:  &GUID_RyAxis,
+				Ofs:   224,
+				Type:  0x80FFFF03,
+				Flags: 768,
+			},
+			OBJECTDATAFORMAT{
+				Guid:  &GUID_RzAxis,
+				Ofs:   228,
+				Type:  0x80FFFF03,
+				Flags: 768,
+			},
+			OBJECTDATAFORMAT{
+				Guid:  &GUID_Slider,
+				Ofs:   24,
+				Type:  0x80FFFF03,
+				Flags: 768,
+			},
+			OBJECTDATAFORMAT{
+				Guid:  &GUID_Slider,
+				Ofs:   28,
+				Type:  0x80FFFF03,
+				Flags: 768,
+			},
+			OBJECTDATAFORMAT{
+				Guid:  &GUID_XAxis,
+				Ofs:   240,
+				Type:  0x80FFFF03,
+				Flags: 1024,
+			},
+			OBJECTDATAFORMAT{
+				Guid:  &GUID_YAxis,
+				Ofs:   244,
+				Type:  0x80FFFF03,
+				Flags: 1024,
+			},
+			OBJECTDATAFORMAT{
+				Guid:  &GUID_ZAxis,
+				Ofs:   248,
+				Type:  0x80FFFF03,
+				Flags: 1024,
+			},
+			OBJECTDATAFORMAT{
+				Guid:  &GUID_RxAxis,
+				Ofs:   252,
+				Type:  0x80FFFF03,
+				Flags: 1024,
+			},
+			OBJECTDATAFORMAT{
+				Guid:  &GUID_RyAxis,
+				Ofs:   256,
+				Type:  0x80FFFF03,
+				Flags: 1024,
+			},
+			OBJECTDATAFORMAT{
+				Guid:  &GUID_RzAxis,
+				Ofs:   260,
+				Type:  0x80FFFF03,
+				Flags: 1024,
+			},
+			OBJECTDATAFORMAT{
+				Guid:  &GUID_Slider,
+				Ofs:   24,
+				Type:  0x80FFFF03,
+				Flags: 1024,
+			},
+			OBJECTDATAFORMAT{
+				Guid:  &GUID_Slider,
+				Ofs:   28,
+				Type:  0x80FFFF03,
+				Flags: 1024,
+			},
+		}[0],
+	}
+
+	PROP_BUFFERSIZE         = (*GUID)(unsafe.Pointer(uintptr(1)))
+	PROP_AXISMODE           = (*GUID)(unsafe.Pointer(uintptr(2)))
+	PROP_GRANULARITY        = (*GUID)(unsafe.Pointer(uintptr(3)))
+	PROP_RANGE              = (*GUID)(unsafe.Pointer(uintptr(4)))
+	PROP_DEADZONE           = (*GUID)(unsafe.Pointer(uintptr(5)))
+	PROP_SATURATION         = (*GUID)(unsafe.Pointer(uintptr(6)))
+	PROP_FFGAIN             = (*GUID)(unsafe.Pointer(uintptr(7)))
+	PROP_FFLOAD             = (*GUID)(unsafe.Pointer(uintptr(8)))
+	PROP_AUTOCENTER         = (*GUID)(unsafe.Pointer(uintptr(9)))
+	PROP_CALIBRATIONMODE    = (*GUID)(unsafe.Pointer(uintptr(10)))
+	PROP_CALIBRATION        = (*GUID)(unsafe.Pointer(uintptr(11)))
+	PROP_GUIDANDPATH        = (*GUID)(unsafe.Pointer(uintptr(12)))
+	PROP_INSTANCENAME       = (*GUID)(unsafe.Pointer(uintptr(13)))
+	PROP_PRODUCTNAME        = (*GUID)(unsafe.Pointer(uintptr(14)))
+	PROP_JOYSTICKID         = (*GUID)(unsafe.Pointer(uintptr(15)))
+	PROP_GETPORTDISPLAYNAME = (*GUID)(unsafe.Pointer(uintptr(16)))
+	IPROP_PHYSICALRANGE     = (*GUID)(unsafe.Pointer(uintptr(18)))
+	PROP_LOGICALRANGE       = (*GUID)(unsafe.Pointer(uintptr(19)))
+	PROP_KEYNAME            = (*GUID)(unsafe.Pointer(uintptr(20)))
+	PROP_CPOINTS            = (*GUID)(unsafe.Pointer(uintptr(21)))
+	PROP_APPDATA            = (*GUID)(unsafe.Pointer(uintptr(22)))
+	PROP_SCANCODE           = (*GUID)(unsafe.Pointer(uintptr(23)))
+	PROP_VIDPID             = (*GUID)(unsafe.Pointer(uintptr(24)))
+	PROP_USERNAME           = (*GUID)(unsafe.Pointer(uintptr(25)))
+	PROP_TYPENAME           = (*GUID)(unsafe.Pointer(uintptr(26)))
 )
