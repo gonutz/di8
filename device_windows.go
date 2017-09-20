@@ -69,6 +69,17 @@ func (obj *Device) Acquire() Error {
 	return toErr(ret)
 }
 
+func (obj *Device) Unacquire() Error {
+	ret, _, _ := syscall.Syscall(
+		obj.vtbl.Unacquire,
+		1,
+		uintptr(unsafe.Pointer(obj)),
+		0,
+		0,
+	)
+	return toErr(ret)
+}
+
 func (obj *Device) SetCooperativeLevel(window HWND, flags uint32) Error {
 	ret, _, _ := syscall.Syscall(
 		obj.vtbl.SetCooperativeLevel,
