@@ -31,7 +31,8 @@ type hResultError int32
 func (r hResultError) Code() int32 { return int32(r) }
 
 func (e hResultError) Error() string {
-	switch int64(e) {
+	// these casts are needed to make comparisons work correctly
+	switch int64(uint32(e)) {
 	case ERR_ACQUIRED:
 		return "ERR_ACQUIRED: The operation cannot be performed while the device is acquired."
 	case ERR_ALREADYINITIALIZED:
