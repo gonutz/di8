@@ -143,6 +143,10 @@ type Property interface {
 	PropHeader() *PROPHEADER
 }
 
+// SetProperty sets one of the PROP_* properties for the device. Predefined
+// property types are: PROPCPOINTS, PROPDWORD, PROPRANGE, PROPCAL, PROPCALPOV,
+// PROPGUIDANDPATH, PROPSTRING and PROPPOINTER. Create them with the NewProp*
+// functions.
 func (obj *Device) SetProperty(guid *GUID, prop Property) Error {
 	ret, _, _ := syscall.Syscall(
 		obj.vtbl.SetProperty,
