@@ -4,6 +4,18 @@ import "unsafe"
 
 const MAX_PATH = 260
 
+// KeyDown returns true if the high-bit of the value is set, this can be used to
+// determine whether a button state value means the button is down or was
+// pressed.
+func KeyDown(value uint8) bool {
+	return value&0x80 != 0
+}
+
+// KeyUp returns the opposite of KeyDown, see above.
+func KeyUp(value uint8) bool {
+	return value&0x80 == 0
+}
+
 func EFT_GETTYPE(n uint) uint {
 	return n & 0xFF
 }
