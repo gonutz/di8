@@ -2,11 +2,11 @@ package di8
 
 import "strconv"
 
-// Error is returned by all DirectInput8 functions. It encapsulates the error
-// code returned by DirectInput. If a function succeeds it will return nil as
-// the Error and if it fails you can retrieve the error code using the Code()
-// function. You can check the result against the predefined error codes (like
-// ERR_INVALIDPARAM, ERR_OUTOFMEMORY etc).
+// Error is returned by all di8 functions. It encapsulates the error code
+// returned by DirectInput. If a function succeeds it will return nil as the
+// Error and if it fails you can retrieve the error code using the Code()
+// function. You can check the result against the predefined error codes, like
+// ERR_INVALIDPARAM, ERR_OUTOFMEMORY, etc.
 type Error interface {
 	error
 	// Code returns the DirectInput error code for a function. Call this
@@ -19,7 +19,7 @@ type Error interface {
 }
 
 func toErr(result uintptr) Error {
-	res := hResultError(result) // cast to signed int
+	res := hResultError(result)
 	if res >= 0 {
 		return nil
 	}
@@ -28,11 +28,13 @@ func toErr(result uintptr) Error {
 
 type hResultError int32
 
-func (r hResultError) Code() int32 { return int32(r) }
+func (r hResultError) Code() int32 {
+	return int32(r)
+}
 
 func (e hResultError) Error() string {
-	// these casts are needed to make comparisons work correctly
-	switch int64(uint32(e)) {
+	// These casts are needed to make comparisons work correctly.
+	switch int64(int32(e)) {
 	case ERR_ACQUIRED:
 		return "ERR_ACQUIRED: The operation cannot be performed while the device is acquired."
 	case ERR_ALREADYINITIALIZED:
@@ -82,6 +84,6 @@ func (e hResultError) Error() string {
 	case BUFFEROVERFLOW:
 		return "DI_BUFFEROVERFLOW: the device data was truncated."
 	default:
-		return "Unknown error code " + strconv.Itoa(int(e))
+		return "Error code " + strconv.Itoa(int(e))
 	}
 }

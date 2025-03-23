@@ -2,8 +2,6 @@ package di8
 
 import "unsafe"
 
-const MAX_PATH = 260
-
 // KeyDown returns true if the high-bit of the value is set, this can be used to
 // determine whether a button state value means the button is down or was
 // pressed.
@@ -16,14 +14,15 @@ func KeyUp(value uint8) bool {
 	return value&0x80 == 0
 }
 
+// EFT_GETTYPE returns the effect type of n.
 func EFT_GETTYPE(n uint) uint {
 	return n & 0xFF
 }
 
 // GET_DIDEVICE_TYPE extracts the device primary type code from a device type
 // description code.
-// devType: DirectInput device type description code. Possible values for this
-// parameter are identical to those found in the DevType member of the
+// devType is a DirectInput device type description code. Possible values for
+// this parameter are identical to those found in the DevType member of the
 // DEVICEINSTANCE structure.
 func GET_DEVICE_TYPE(devType uint) uint {
 	return devType & 0xFF
@@ -31,8 +30,8 @@ func GET_DEVICE_TYPE(devType uint) uint {
 
 // GET_DIDEVICE_SUBTYPE extracts the device subtype code from a device type
 // description code.
-// devType: DirectInput device type description code. The possible values for
-// this parameter are identical to those found in the DevType member of the
+// devType is a DirectInput device type description code. The possible values
+// for this parameter are identical to those found in the DevType member of the
 // DEVICEINSTANCE structure.
 func GET_DEVICE_SUBTYPE(devType uint) uint {
 	return (devType >> 8) & 0xFF
@@ -40,46 +39,47 @@ func GET_DEVICE_SUBTYPE(devType uint) uint {
 
 // DFT_MAKEINSTANCE creates an instance identifier of a device object for
 // packing in the Type member of the OBJECTDATAFORMAT structure.
-// n: Instance of the object; for example, 1 for button 1 of a mouse.
+// n is the instance of the object; for example, 1 for button 1 of a mouse.
 func DFT_MAKEINSTANCE(n uint) uint {
 	return (n & 0xFFFF) << 8
 }
 
 // DFT_GETTYPE macro extracts the effect type code from an effect format type.
-// n: DirectInput effect format type. The possible values for this parameter are
-// identical to those found in the EffType member of the EffectInfo structure.
+// n is a DirectInput effect format type. The possible values for this
+// parameter are identical to those found in the EffType member of the
+// EffectInfo structure.
 func DFT_GETTYPE(n uint) uint {
 	return n & 0xFF
 }
 
 // DFT_GETINSTANCE extracts the object instance number code from a data format
 // type.
-// n: DirectInput data format type. The possible values for this parameter are
-// identical to those found in the Type member of the OBJECTDATAFORMAT
+// n is a DirectInput data format type. The possible values for this parameter
+// are identical to those found in the Type member of the OBJECTDATAFORMAT
 // structure.
 func DFT_GETINSTANCE(n uint) uint {
 	return (n & 0xFFFF) >> 8
 }
 
+// DFT_ENUMCOLLECTION enumerates objects that belongs to HID link collection
+// number n.
 func DFT_ENUMCOLLECTION(n uint) uint {
 	return (n & 0xFFFF) << 8
 }
 
 // MAKEUSAGEDWORD combines the usage page and usage codes for a device object
 // representing a Human Interface Device (HID), for passing to the
-// Device8.GetObjectInfo method.
+// Device.GetObjectInfo method.
 func MAKEUSAGEDWORD(UsagePage, Usage uint) uint {
-	return makelong(Usage, UsagePage)
-}
-
-func makelong(a, b uint) uint {
-	return (a & 0xFFFF) | ((b & 0xFFFF) << 16)
+	return (Usage & 0xFFFF) | ((UsagePage & 0xFFFF) << 16)
 }
 
 // SEQUENCE_COMPARE compares two DirectInput sequence numbers, compensating for
 // wraparound. It returns the difference of two sequence values.
 // Check the result against 0 with the comparison operator of your choice, e.g.
-//     SEQUENCE_COMPARE(a, b) < 0
+//
+//	SEQUENCE_COMPARE(a, b) < 0
+//
 // to check if sequence value a < b.
 func SEQUENCE_COMPARE(seq1, seq2 uint32) int {
 	return int(int32(seq1 - seq2))
@@ -1910,2277 +1910,535 @@ var (
 	GUID_Friction            = GUID{0x13541C2A, 0x8E33, 0x11D0, [8]byte{0x9A, 0xD0, 0x00, 0xA0, 0xC9, 0xA0, 0x6E, 0x35}}
 	GUID_CustomForce         = GUID{0x13541C2B, 0x8E33, 0x11D0, [8]byte{0x9A, 0xD0, 0x00, 0xA0, 0xC9, 0xA0, 0x6E, 0x35}}
 
-	dataformat       DATAFORMAT
-	objectdataformat OBJECTDATAFORMAT
-
 	Keyboard = DATAFORMAT{
-		Size:     uint32(unsafe.Sizeof(dataformat)),
-		ObjSize:  uint32(unsafe.Sizeof(objectdataformat)),
+		Size:     uint32(unsafe.Sizeof(DATAFORMAT{})),
+		ObjSize:  uint32(unsafe.Sizeof(OBJECTDATAFORMAT{})),
 		Flags:    2,
 		DataSize: 256,
 		NumObjs:  256,
 		Rgodf: &[]OBJECTDATAFORMAT{
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  0,
-				Type: 0X8000000C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  1,
-				Type: 0X8000010C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  2,
-				Type: 0X8000020C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  3,
-				Type: 0X8000030C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  4,
-				Type: 0X8000040C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  5,
-				Type: 0X8000050C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  6,
-				Type: 0X8000060C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  7,
-				Type: 0X8000070C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  8,
-				Type: 0X8000080C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  9,
-				Type: 0X8000090C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  10,
-				Type: 0X80000A0C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  11,
-				Type: 0X80000B0C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  12,
-				Type: 0X80000C0C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  13,
-				Type: 0X80000D0C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  14,
-				Type: 0X80000E0C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  15,
-				Type: 0X80000F0C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  16,
-				Type: 0X8000100C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  17,
-				Type: 0X8000110C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  18,
-				Type: 0X8000120C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  19,
-				Type: 0X8000130C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  20,
-				Type: 0X8000140C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  21,
-				Type: 0X8000150C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  22,
-				Type: 0X8000160C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  23,
-				Type: 0X8000170C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  24,
-				Type: 0X8000180C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  25,
-				Type: 0X8000190C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  26,
-				Type: 0X80001A0C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  27,
-				Type: 0X80001B0C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  28,
-				Type: 0X80001C0C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  29,
-				Type: 0X80001D0C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  30,
-				Type: 0X80001E0C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  31,
-				Type: 0X80001F0C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  32,
-				Type: 0X8000200C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  33,
-				Type: 0X8000210C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  34,
-				Type: 0X8000220C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  35,
-				Type: 0X8000230C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  36,
-				Type: 0X8000240C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  37,
-				Type: 0X8000250C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  38,
-				Type: 0X8000260C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  39,
-				Type: 0X8000270C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  40,
-				Type: 0X8000280C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  41,
-				Type: 0X8000290C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  42,
-				Type: 0X80002A0C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  43,
-				Type: 0X80002B0C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  44,
-				Type: 0X80002C0C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  45,
-				Type: 0X80002D0C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  46,
-				Type: 0X80002E0C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  47,
-				Type: 0X80002F0C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  48,
-				Type: 0X8000300C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  49,
-				Type: 0X8000310C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  50,
-				Type: 0X8000320C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  51,
-				Type: 0X8000330C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  52,
-				Type: 0X8000340C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  53,
-				Type: 0X8000350C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  54,
-				Type: 0X8000360C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  55,
-				Type: 0X8000370C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  56,
-				Type: 0X8000380C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  57,
-				Type: 0X8000390C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  58,
-				Type: 0X80003A0C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  59,
-				Type: 0X80003B0C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  60,
-				Type: 0X80003C0C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  61,
-				Type: 0X80003D0C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  62,
-				Type: 0X80003E0C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  63,
-				Type: 0X80003F0C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  64,
-				Type: 0X8000400C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  65,
-				Type: 0X8000410C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  66,
-				Type: 0X8000420C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  67,
-				Type: 0X8000430C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  68,
-				Type: 0X8000440C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  69,
-				Type: 0X8000450C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  70,
-				Type: 0X8000460C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  71,
-				Type: 0X8000470C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  72,
-				Type: 0X8000480C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  73,
-				Type: 0X8000490C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  74,
-				Type: 0X80004A0C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  75,
-				Type: 0X80004B0C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  76,
-				Type: 0X80004C0C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  77,
-				Type: 0X80004D0C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  78,
-				Type: 0X80004E0C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  79,
-				Type: 0X80004F0C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  80,
-				Type: 0X8000500C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  81,
-				Type: 0X8000510C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  82,
-				Type: 0X8000520C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  83,
-				Type: 0X8000530C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  84,
-				Type: 0X8000540C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  85,
-				Type: 0X8000550C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  86,
-				Type: 0X8000560C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  87,
-				Type: 0X8000570C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  88,
-				Type: 0X8000580C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  89,
-				Type: 0X8000590C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  90,
-				Type: 0X80005A0C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  91,
-				Type: 0X80005B0C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  92,
-				Type: 0X80005C0C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  93,
-				Type: 0X80005D0C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  94,
-				Type: 0X80005E0C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  95,
-				Type: 0X80005F0C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  96,
-				Type: 0X8000600C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  97,
-				Type: 0X8000610C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  98,
-				Type: 0X8000620C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  99,
-				Type: 0X8000630C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  100,
-				Type: 0X8000640C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  101,
-				Type: 0X8000650C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  102,
-				Type: 0X8000660C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  103,
-				Type: 0X8000670C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  104,
-				Type: 0X8000680C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  105,
-				Type: 0X8000690C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  106,
-				Type: 0X80006A0C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  107,
-				Type: 0X80006B0C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  108,
-				Type: 0X80006C0C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  109,
-				Type: 0X80006D0C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  110,
-				Type: 0X80006E0C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  111,
-				Type: 0X80006F0C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  112,
-				Type: 0X8000700C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  113,
-				Type: 0X8000710C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  114,
-				Type: 0X8000720C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  115,
-				Type: 0X8000730C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  116,
-				Type: 0X8000740C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  117,
-				Type: 0X8000750C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  118,
-				Type: 0X8000760C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  119,
-				Type: 0X8000770C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  120,
-				Type: 0X8000780C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  121,
-				Type: 0X8000790C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  122,
-				Type: 0X80007A0C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  123,
-				Type: 0X80007B0C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  124,
-				Type: 0X80007C0C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  125,
-				Type: 0X80007D0C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  126,
-				Type: 0X80007E0C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  127,
-				Type: 0X80007F0C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  128,
-				Type: 0X8000800C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  129,
-				Type: 0X8000810C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  130,
-				Type: 0X8000820C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  131,
-				Type: 0X8000830C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  132,
-				Type: 0X8000840C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  133,
-				Type: 0X8000850C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  134,
-				Type: 0X8000860C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  135,
-				Type: 0X8000870C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  136,
-				Type: 0X8000880C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  137,
-				Type: 0X8000890C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  138,
-				Type: 0X80008A0C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  139,
-				Type: 0X80008B0C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  140,
-				Type: 0X80008C0C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  141,
-				Type: 0X80008D0C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  142,
-				Type: 0X80008E0C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  143,
-				Type: 0X80008F0C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  144,
-				Type: 0X8000900C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  145,
-				Type: 0X8000910C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  146,
-				Type: 0X8000920C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  147,
-				Type: 0X8000930C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  148,
-				Type: 0X8000940C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  149,
-				Type: 0X8000950C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  150,
-				Type: 0X8000960C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  151,
-				Type: 0X8000970C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  152,
-				Type: 0X8000980C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  153,
-				Type: 0X8000990C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  154,
-				Type: 0X80009A0C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  155,
-				Type: 0X80009B0C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  156,
-				Type: 0X80009C0C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  157,
-				Type: 0X80009D0C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  158,
-				Type: 0X80009E0C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  159,
-				Type: 0X80009F0C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  160,
-				Type: 0X8000A00C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  161,
-				Type: 0X8000A10C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  162,
-				Type: 0X8000A20C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  163,
-				Type: 0X8000A30C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  164,
-				Type: 0X8000A40C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  165,
-				Type: 0X8000A50C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  166,
-				Type: 0X8000A60C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  167,
-				Type: 0X8000A70C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  168,
-				Type: 0X8000A80C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  169,
-				Type: 0X8000A90C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  170,
-				Type: 0X8000AA0C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  171,
-				Type: 0X8000AB0C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  172,
-				Type: 0X8000AC0C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  173,
-				Type: 0X8000AD0C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  174,
-				Type: 0X8000AE0C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  175,
-				Type: 0X8000AF0C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  176,
-				Type: 0X8000B00C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  177,
-				Type: 0X8000B10C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  178,
-				Type: 0X8000B20C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  179,
-				Type: 0X8000B30C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  180,
-				Type: 0X8000B40C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  181,
-				Type: 0X8000B50C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  182,
-				Type: 0X8000B60C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  183,
-				Type: 0X8000B70C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  184,
-				Type: 0X8000B80C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  185,
-				Type: 0X8000B90C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  186,
-				Type: 0X8000BA0C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  187,
-				Type: 0X8000BB0C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  188,
-				Type: 0X8000BC0C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  189,
-				Type: 0X8000BD0C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  190,
-				Type: 0X8000BE0C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  191,
-				Type: 0X8000BF0C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  192,
-				Type: 0X8000C00C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  193,
-				Type: 0X8000C10C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  194,
-				Type: 0X8000C20C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  195,
-				Type: 0X8000C30C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  196,
-				Type: 0X8000C40C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  197,
-				Type: 0X8000C50C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  198,
-				Type: 0X8000C60C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  199,
-				Type: 0X8000C70C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  200,
-				Type: 0X8000C80C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  201,
-				Type: 0X8000C90C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  202,
-				Type: 0X8000CA0C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  203,
-				Type: 0X8000CB0C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  204,
-				Type: 0X8000CC0C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  205,
-				Type: 0X8000CD0C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  206,
-				Type: 0X8000CE0C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  207,
-				Type: 0X8000CF0C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  208,
-				Type: 0X8000D00C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  209,
-				Type: 0X8000D10C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  210,
-				Type: 0X8000D20C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  211,
-				Type: 0X8000D30C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  212,
-				Type: 0X8000D40C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  213,
-				Type: 0X8000D50C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  214,
-				Type: 0X8000D60C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  215,
-				Type: 0X8000D70C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  216,
-				Type: 0X8000D80C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  217,
-				Type: 0X8000D90C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  218,
-				Type: 0X8000DA0C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  219,
-				Type: 0X8000DB0C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  220,
-				Type: 0X8000DC0C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  221,
-				Type: 0X8000DD0C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  222,
-				Type: 0X8000DE0C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  223,
-				Type: 0X8000DF0C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  224,
-				Type: 0X8000E00C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  225,
-				Type: 0X8000E10C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  226,
-				Type: 0X8000E20C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  227,
-				Type: 0X8000E30C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  228,
-				Type: 0X8000E40C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  229,
-				Type: 0X8000E50C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  230,
-				Type: 0X8000E60C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  231,
-				Type: 0X8000E70C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  232,
-				Type: 0X8000E80C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  233,
-				Type: 0X8000E90C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  234,
-				Type: 0X8000EA0C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  235,
-				Type: 0X8000EB0C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  236,
-				Type: 0X8000EC0C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  237,
-				Type: 0X8000ED0C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  238,
-				Type: 0X8000EE0C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  239,
-				Type: 0X8000EF0C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  240,
-				Type: 0X8000F00C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  241,
-				Type: 0X8000F10C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  242,
-				Type: 0X8000F20C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  243,
-				Type: 0X8000F30C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  244,
-				Type: 0X8000F40C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  245,
-				Type: 0X8000F50C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  246,
-				Type: 0X8000F60C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  247,
-				Type: 0X8000F70C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  248,
-				Type: 0X8000F80C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  249,
-				Type: 0X8000F90C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  250,
-				Type: 0X8000FA0C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  251,
-				Type: 0X8000FB0C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  252,
-				Type: 0X8000FC0C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  253,
-				Type: 0X8000FD0C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  254,
-				Type: 0X8000FE0C,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_Key,
-				Ofs:  255,
-				Type: 0X8000FF0C,
-			},
+			{Guid: &GUID_Key, Ofs: 0, Type: 0x8000000C},
+			{Guid: &GUID_Key, Ofs: 1, Type: 0x8000010C},
+			{Guid: &GUID_Key, Ofs: 2, Type: 0x8000020C},
+			{Guid: &GUID_Key, Ofs: 3, Type: 0x8000030C},
+			{Guid: &GUID_Key, Ofs: 4, Type: 0x8000040C},
+			{Guid: &GUID_Key, Ofs: 5, Type: 0x8000050C},
+			{Guid: &GUID_Key, Ofs: 6, Type: 0x8000060C},
+			{Guid: &GUID_Key, Ofs: 7, Type: 0x8000070C},
+			{Guid: &GUID_Key, Ofs: 8, Type: 0x8000080C},
+			{Guid: &GUID_Key, Ofs: 9, Type: 0x8000090C},
+			{Guid: &GUID_Key, Ofs: 10, Type: 0x80000A0C},
+			{Guid: &GUID_Key, Ofs: 11, Type: 0x80000B0C},
+			{Guid: &GUID_Key, Ofs: 12, Type: 0x80000C0C},
+			{Guid: &GUID_Key, Ofs: 13, Type: 0x80000D0C},
+			{Guid: &GUID_Key, Ofs: 14, Type: 0x80000E0C},
+			{Guid: &GUID_Key, Ofs: 15, Type: 0x80000F0C},
+			{Guid: &GUID_Key, Ofs: 16, Type: 0x8000100C},
+			{Guid: &GUID_Key, Ofs: 17, Type: 0x8000110C},
+			{Guid: &GUID_Key, Ofs: 18, Type: 0x8000120C},
+			{Guid: &GUID_Key, Ofs: 19, Type: 0x8000130C},
+			{Guid: &GUID_Key, Ofs: 20, Type: 0x8000140C},
+			{Guid: &GUID_Key, Ofs: 21, Type: 0x8000150C},
+			{Guid: &GUID_Key, Ofs: 22, Type: 0x8000160C},
+			{Guid: &GUID_Key, Ofs: 23, Type: 0x8000170C},
+			{Guid: &GUID_Key, Ofs: 24, Type: 0x8000180C},
+			{Guid: &GUID_Key, Ofs: 25, Type: 0x8000190C},
+			{Guid: &GUID_Key, Ofs: 26, Type: 0x80001A0C},
+			{Guid: &GUID_Key, Ofs: 27, Type: 0x80001B0C},
+			{Guid: &GUID_Key, Ofs: 28, Type: 0x80001C0C},
+			{Guid: &GUID_Key, Ofs: 29, Type: 0x80001D0C},
+			{Guid: &GUID_Key, Ofs: 30, Type: 0x80001E0C},
+			{Guid: &GUID_Key, Ofs: 31, Type: 0x80001F0C},
+			{Guid: &GUID_Key, Ofs: 32, Type: 0x8000200C},
+			{Guid: &GUID_Key, Ofs: 33, Type: 0x8000210C},
+			{Guid: &GUID_Key, Ofs: 34, Type: 0x8000220C},
+			{Guid: &GUID_Key, Ofs: 35, Type: 0x8000230C},
+			{Guid: &GUID_Key, Ofs: 36, Type: 0x8000240C},
+			{Guid: &GUID_Key, Ofs: 37, Type: 0x8000250C},
+			{Guid: &GUID_Key, Ofs: 38, Type: 0x8000260C},
+			{Guid: &GUID_Key, Ofs: 39, Type: 0x8000270C},
+			{Guid: &GUID_Key, Ofs: 40, Type: 0x8000280C},
+			{Guid: &GUID_Key, Ofs: 41, Type: 0x8000290C},
+			{Guid: &GUID_Key, Ofs: 42, Type: 0x80002A0C},
+			{Guid: &GUID_Key, Ofs: 43, Type: 0x80002B0C},
+			{Guid: &GUID_Key, Ofs: 44, Type: 0x80002C0C},
+			{Guid: &GUID_Key, Ofs: 45, Type: 0x80002D0C},
+			{Guid: &GUID_Key, Ofs: 46, Type: 0x80002E0C},
+			{Guid: &GUID_Key, Ofs: 47, Type: 0x80002F0C},
+			{Guid: &GUID_Key, Ofs: 48, Type: 0x8000300C},
+			{Guid: &GUID_Key, Ofs: 49, Type: 0x8000310C},
+			{Guid: &GUID_Key, Ofs: 50, Type: 0x8000320C},
+			{Guid: &GUID_Key, Ofs: 51, Type: 0x8000330C},
+			{Guid: &GUID_Key, Ofs: 52, Type: 0x8000340C},
+			{Guid: &GUID_Key, Ofs: 53, Type: 0x8000350C},
+			{Guid: &GUID_Key, Ofs: 54, Type: 0x8000360C},
+			{Guid: &GUID_Key, Ofs: 55, Type: 0x8000370C},
+			{Guid: &GUID_Key, Ofs: 56, Type: 0x8000380C},
+			{Guid: &GUID_Key, Ofs: 57, Type: 0x8000390C},
+			{Guid: &GUID_Key, Ofs: 58, Type: 0x80003A0C},
+			{Guid: &GUID_Key, Ofs: 59, Type: 0x80003B0C},
+			{Guid: &GUID_Key, Ofs: 60, Type: 0x80003C0C},
+			{Guid: &GUID_Key, Ofs: 61, Type: 0x80003D0C},
+			{Guid: &GUID_Key, Ofs: 62, Type: 0x80003E0C},
+			{Guid: &GUID_Key, Ofs: 63, Type: 0x80003F0C},
+			{Guid: &GUID_Key, Ofs: 64, Type: 0x8000400C},
+			{Guid: &GUID_Key, Ofs: 65, Type: 0x8000410C},
+			{Guid: &GUID_Key, Ofs: 66, Type: 0x8000420C},
+			{Guid: &GUID_Key, Ofs: 67, Type: 0x8000430C},
+			{Guid: &GUID_Key, Ofs: 68, Type: 0x8000440C},
+			{Guid: &GUID_Key, Ofs: 69, Type: 0x8000450C},
+			{Guid: &GUID_Key, Ofs: 70, Type: 0x8000460C},
+			{Guid: &GUID_Key, Ofs: 71, Type: 0x8000470C},
+			{Guid: &GUID_Key, Ofs: 72, Type: 0x8000480C},
+			{Guid: &GUID_Key, Ofs: 73, Type: 0x8000490C},
+			{Guid: &GUID_Key, Ofs: 74, Type: 0x80004A0C},
+			{Guid: &GUID_Key, Ofs: 75, Type: 0x80004B0C},
+			{Guid: &GUID_Key, Ofs: 76, Type: 0x80004C0C},
+			{Guid: &GUID_Key, Ofs: 77, Type: 0x80004D0C},
+			{Guid: &GUID_Key, Ofs: 78, Type: 0x80004E0C},
+			{Guid: &GUID_Key, Ofs: 79, Type: 0x80004F0C},
+			{Guid: &GUID_Key, Ofs: 80, Type: 0x8000500C},
+			{Guid: &GUID_Key, Ofs: 81, Type: 0x8000510C},
+			{Guid: &GUID_Key, Ofs: 82, Type: 0x8000520C},
+			{Guid: &GUID_Key, Ofs: 83, Type: 0x8000530C},
+			{Guid: &GUID_Key, Ofs: 84, Type: 0x8000540C},
+			{Guid: &GUID_Key, Ofs: 85, Type: 0x8000550C},
+			{Guid: &GUID_Key, Ofs: 86, Type: 0x8000560C},
+			{Guid: &GUID_Key, Ofs: 87, Type: 0x8000570C},
+			{Guid: &GUID_Key, Ofs: 88, Type: 0x8000580C},
+			{Guid: &GUID_Key, Ofs: 89, Type: 0x8000590C},
+			{Guid: &GUID_Key, Ofs: 90, Type: 0x80005A0C},
+			{Guid: &GUID_Key, Ofs: 91, Type: 0x80005B0C},
+			{Guid: &GUID_Key, Ofs: 92, Type: 0x80005C0C},
+			{Guid: &GUID_Key, Ofs: 93, Type: 0x80005D0C},
+			{Guid: &GUID_Key, Ofs: 94, Type: 0x80005E0C},
+			{Guid: &GUID_Key, Ofs: 95, Type: 0x80005F0C},
+			{Guid: &GUID_Key, Ofs: 96, Type: 0x8000600C},
+			{Guid: &GUID_Key, Ofs: 97, Type: 0x8000610C},
+			{Guid: &GUID_Key, Ofs: 98, Type: 0x8000620C},
+			{Guid: &GUID_Key, Ofs: 99, Type: 0x8000630C},
+			{Guid: &GUID_Key, Ofs: 100, Type: 0x8000640C},
+			{Guid: &GUID_Key, Ofs: 101, Type: 0x8000650C},
+			{Guid: &GUID_Key, Ofs: 102, Type: 0x8000660C},
+			{Guid: &GUID_Key, Ofs: 103, Type: 0x8000670C},
+			{Guid: &GUID_Key, Ofs: 104, Type: 0x8000680C},
+			{Guid: &GUID_Key, Ofs: 105, Type: 0x8000690C},
+			{Guid: &GUID_Key, Ofs: 106, Type: 0x80006A0C},
+			{Guid: &GUID_Key, Ofs: 107, Type: 0x80006B0C},
+			{Guid: &GUID_Key, Ofs: 108, Type: 0x80006C0C},
+			{Guid: &GUID_Key, Ofs: 109, Type: 0x80006D0C},
+			{Guid: &GUID_Key, Ofs: 110, Type: 0x80006E0C},
+			{Guid: &GUID_Key, Ofs: 111, Type: 0x80006F0C},
+			{Guid: &GUID_Key, Ofs: 112, Type: 0x8000700C},
+			{Guid: &GUID_Key, Ofs: 113, Type: 0x8000710C},
+			{Guid: &GUID_Key, Ofs: 114, Type: 0x8000720C},
+			{Guid: &GUID_Key, Ofs: 115, Type: 0x8000730C},
+			{Guid: &GUID_Key, Ofs: 116, Type: 0x8000740C},
+			{Guid: &GUID_Key, Ofs: 117, Type: 0x8000750C},
+			{Guid: &GUID_Key, Ofs: 118, Type: 0x8000760C},
+			{Guid: &GUID_Key, Ofs: 119, Type: 0x8000770C},
+			{Guid: &GUID_Key, Ofs: 120, Type: 0x8000780C},
+			{Guid: &GUID_Key, Ofs: 121, Type: 0x8000790C},
+			{Guid: &GUID_Key, Ofs: 122, Type: 0x80007A0C},
+			{Guid: &GUID_Key, Ofs: 123, Type: 0x80007B0C},
+			{Guid: &GUID_Key, Ofs: 124, Type: 0x80007C0C},
+			{Guid: &GUID_Key, Ofs: 125, Type: 0x80007D0C},
+			{Guid: &GUID_Key, Ofs: 126, Type: 0x80007E0C},
+			{Guid: &GUID_Key, Ofs: 127, Type: 0x80007F0C},
+			{Guid: &GUID_Key, Ofs: 128, Type: 0x8000800C},
+			{Guid: &GUID_Key, Ofs: 129, Type: 0x8000810C},
+			{Guid: &GUID_Key, Ofs: 130, Type: 0x8000820C},
+			{Guid: &GUID_Key, Ofs: 131, Type: 0x8000830C},
+			{Guid: &GUID_Key, Ofs: 132, Type: 0x8000840C},
+			{Guid: &GUID_Key, Ofs: 133, Type: 0x8000850C},
+			{Guid: &GUID_Key, Ofs: 134, Type: 0x8000860C},
+			{Guid: &GUID_Key, Ofs: 135, Type: 0x8000870C},
+			{Guid: &GUID_Key, Ofs: 136, Type: 0x8000880C},
+			{Guid: &GUID_Key, Ofs: 137, Type: 0x8000890C},
+			{Guid: &GUID_Key, Ofs: 138, Type: 0x80008A0C},
+			{Guid: &GUID_Key, Ofs: 139, Type: 0x80008B0C},
+			{Guid: &GUID_Key, Ofs: 140, Type: 0x80008C0C},
+			{Guid: &GUID_Key, Ofs: 141, Type: 0x80008D0C},
+			{Guid: &GUID_Key, Ofs: 142, Type: 0x80008E0C},
+			{Guid: &GUID_Key, Ofs: 143, Type: 0x80008F0C},
+			{Guid: &GUID_Key, Ofs: 144, Type: 0x8000900C},
+			{Guid: &GUID_Key, Ofs: 145, Type: 0x8000910C},
+			{Guid: &GUID_Key, Ofs: 146, Type: 0x8000920C},
+			{Guid: &GUID_Key, Ofs: 147, Type: 0x8000930C},
+			{Guid: &GUID_Key, Ofs: 148, Type: 0x8000940C},
+			{Guid: &GUID_Key, Ofs: 149, Type: 0x8000950C},
+			{Guid: &GUID_Key, Ofs: 150, Type: 0x8000960C},
+			{Guid: &GUID_Key, Ofs: 151, Type: 0x8000970C},
+			{Guid: &GUID_Key, Ofs: 152, Type: 0x8000980C},
+			{Guid: &GUID_Key, Ofs: 153, Type: 0x8000990C},
+			{Guid: &GUID_Key, Ofs: 154, Type: 0x80009A0C},
+			{Guid: &GUID_Key, Ofs: 155, Type: 0x80009B0C},
+			{Guid: &GUID_Key, Ofs: 156, Type: 0x80009C0C},
+			{Guid: &GUID_Key, Ofs: 157, Type: 0x80009D0C},
+			{Guid: &GUID_Key, Ofs: 158, Type: 0x80009E0C},
+			{Guid: &GUID_Key, Ofs: 159, Type: 0x80009F0C},
+			{Guid: &GUID_Key, Ofs: 160, Type: 0x8000A00C},
+			{Guid: &GUID_Key, Ofs: 161, Type: 0x8000A10C},
+			{Guid: &GUID_Key, Ofs: 162, Type: 0x8000A20C},
+			{Guid: &GUID_Key, Ofs: 163, Type: 0x8000A30C},
+			{Guid: &GUID_Key, Ofs: 164, Type: 0x8000A40C},
+			{Guid: &GUID_Key, Ofs: 165, Type: 0x8000A50C},
+			{Guid: &GUID_Key, Ofs: 166, Type: 0x8000A60C},
+			{Guid: &GUID_Key, Ofs: 167, Type: 0x8000A70C},
+			{Guid: &GUID_Key, Ofs: 168, Type: 0x8000A80C},
+			{Guid: &GUID_Key, Ofs: 169, Type: 0x8000A90C},
+			{Guid: &GUID_Key, Ofs: 170, Type: 0x8000AA0C},
+			{Guid: &GUID_Key, Ofs: 171, Type: 0x8000AB0C},
+			{Guid: &GUID_Key, Ofs: 172, Type: 0x8000AC0C},
+			{Guid: &GUID_Key, Ofs: 173, Type: 0x8000AD0C},
+			{Guid: &GUID_Key, Ofs: 174, Type: 0x8000AE0C},
+			{Guid: &GUID_Key, Ofs: 175, Type: 0x8000AF0C},
+			{Guid: &GUID_Key, Ofs: 176, Type: 0x8000B00C},
+			{Guid: &GUID_Key, Ofs: 177, Type: 0x8000B10C},
+			{Guid: &GUID_Key, Ofs: 178, Type: 0x8000B20C},
+			{Guid: &GUID_Key, Ofs: 179, Type: 0x8000B30C},
+			{Guid: &GUID_Key, Ofs: 180, Type: 0x8000B40C},
+			{Guid: &GUID_Key, Ofs: 181, Type: 0x8000B50C},
+			{Guid: &GUID_Key, Ofs: 182, Type: 0x8000B60C},
+			{Guid: &GUID_Key, Ofs: 183, Type: 0x8000B70C},
+			{Guid: &GUID_Key, Ofs: 184, Type: 0x8000B80C},
+			{Guid: &GUID_Key, Ofs: 185, Type: 0x8000B90C},
+			{Guid: &GUID_Key, Ofs: 186, Type: 0x8000BA0C},
+			{Guid: &GUID_Key, Ofs: 187, Type: 0x8000BB0C},
+			{Guid: &GUID_Key, Ofs: 188, Type: 0x8000BC0C},
+			{Guid: &GUID_Key, Ofs: 189, Type: 0x8000BD0C},
+			{Guid: &GUID_Key, Ofs: 190, Type: 0x8000BE0C},
+			{Guid: &GUID_Key, Ofs: 191, Type: 0x8000BF0C},
+			{Guid: &GUID_Key, Ofs: 192, Type: 0x8000C00C},
+			{Guid: &GUID_Key, Ofs: 193, Type: 0x8000C10C},
+			{Guid: &GUID_Key, Ofs: 194, Type: 0x8000C20C},
+			{Guid: &GUID_Key, Ofs: 195, Type: 0x8000C30C},
+			{Guid: &GUID_Key, Ofs: 196, Type: 0x8000C40C},
+			{Guid: &GUID_Key, Ofs: 197, Type: 0x8000C50C},
+			{Guid: &GUID_Key, Ofs: 198, Type: 0x8000C60C},
+			{Guid: &GUID_Key, Ofs: 199, Type: 0x8000C70C},
+			{Guid: &GUID_Key, Ofs: 200, Type: 0x8000C80C},
+			{Guid: &GUID_Key, Ofs: 201, Type: 0x8000C90C},
+			{Guid: &GUID_Key, Ofs: 202, Type: 0x8000CA0C},
+			{Guid: &GUID_Key, Ofs: 203, Type: 0x8000CB0C},
+			{Guid: &GUID_Key, Ofs: 204, Type: 0x8000CC0C},
+			{Guid: &GUID_Key, Ofs: 205, Type: 0x8000CD0C},
+			{Guid: &GUID_Key, Ofs: 206, Type: 0x8000CE0C},
+			{Guid: &GUID_Key, Ofs: 207, Type: 0x8000CF0C},
+			{Guid: &GUID_Key, Ofs: 208, Type: 0x8000D00C},
+			{Guid: &GUID_Key, Ofs: 209, Type: 0x8000D10C},
+			{Guid: &GUID_Key, Ofs: 210, Type: 0x8000D20C},
+			{Guid: &GUID_Key, Ofs: 211, Type: 0x8000D30C},
+			{Guid: &GUID_Key, Ofs: 212, Type: 0x8000D40C},
+			{Guid: &GUID_Key, Ofs: 213, Type: 0x8000D50C},
+			{Guid: &GUID_Key, Ofs: 214, Type: 0x8000D60C},
+			{Guid: &GUID_Key, Ofs: 215, Type: 0x8000D70C},
+			{Guid: &GUID_Key, Ofs: 216, Type: 0x8000D80C},
+			{Guid: &GUID_Key, Ofs: 217, Type: 0x8000D90C},
+			{Guid: &GUID_Key, Ofs: 218, Type: 0x8000DA0C},
+			{Guid: &GUID_Key, Ofs: 219, Type: 0x8000DB0C},
+			{Guid: &GUID_Key, Ofs: 220, Type: 0x8000DC0C},
+			{Guid: &GUID_Key, Ofs: 221, Type: 0x8000DD0C},
+			{Guid: &GUID_Key, Ofs: 222, Type: 0x8000DE0C},
+			{Guid: &GUID_Key, Ofs: 223, Type: 0x8000DF0C},
+			{Guid: &GUID_Key, Ofs: 224, Type: 0x8000E00C},
+			{Guid: &GUID_Key, Ofs: 225, Type: 0x8000E10C},
+			{Guid: &GUID_Key, Ofs: 226, Type: 0x8000E20C},
+			{Guid: &GUID_Key, Ofs: 227, Type: 0x8000E30C},
+			{Guid: &GUID_Key, Ofs: 228, Type: 0x8000E40C},
+			{Guid: &GUID_Key, Ofs: 229, Type: 0x8000E50C},
+			{Guid: &GUID_Key, Ofs: 230, Type: 0x8000E60C},
+			{Guid: &GUID_Key, Ofs: 231, Type: 0x8000E70C},
+			{Guid: &GUID_Key, Ofs: 232, Type: 0x8000E80C},
+			{Guid: &GUID_Key, Ofs: 233, Type: 0x8000E90C},
+			{Guid: &GUID_Key, Ofs: 234, Type: 0x8000EA0C},
+			{Guid: &GUID_Key, Ofs: 235, Type: 0x8000EB0C},
+			{Guid: &GUID_Key, Ofs: 236, Type: 0x8000EC0C},
+			{Guid: &GUID_Key, Ofs: 237, Type: 0x8000ED0C},
+			{Guid: &GUID_Key, Ofs: 238, Type: 0x8000EE0C},
+			{Guid: &GUID_Key, Ofs: 239, Type: 0x8000EF0C},
+			{Guid: &GUID_Key, Ofs: 240, Type: 0x8000F00C},
+			{Guid: &GUID_Key, Ofs: 241, Type: 0x8000F10C},
+			{Guid: &GUID_Key, Ofs: 242, Type: 0x8000F20C},
+			{Guid: &GUID_Key, Ofs: 243, Type: 0x8000F30C},
+			{Guid: &GUID_Key, Ofs: 244, Type: 0x8000F40C},
+			{Guid: &GUID_Key, Ofs: 245, Type: 0x8000F50C},
+			{Guid: &GUID_Key, Ofs: 246, Type: 0x8000F60C},
+			{Guid: &GUID_Key, Ofs: 247, Type: 0x8000F70C},
+			{Guid: &GUID_Key, Ofs: 248, Type: 0x8000F80C},
+			{Guid: &GUID_Key, Ofs: 249, Type: 0x8000F90C},
+			{Guid: &GUID_Key, Ofs: 250, Type: 0x8000FA0C},
+			{Guid: &GUID_Key, Ofs: 251, Type: 0x8000FB0C},
+			{Guid: &GUID_Key, Ofs: 252, Type: 0x8000FC0C},
+			{Guid: &GUID_Key, Ofs: 253, Type: 0x8000FD0C},
+			{Guid: &GUID_Key, Ofs: 254, Type: 0x8000FE0C},
+			{Guid: &GUID_Key, Ofs: 255, Type: 0x8000FF0C},
 		}[0],
 	}
 
 	Mouse = DATAFORMAT{
-		Size:     uint32(unsafe.Sizeof(dataformat)),
-		ObjSize:  uint32(unsafe.Sizeof(objectdataformat)),
+		Size:     uint32(unsafe.Sizeof(DATAFORMAT{})),
+		ObjSize:  uint32(unsafe.Sizeof(OBJECTDATAFORMAT{})),
 		Flags:    2,
 		DataSize: 16,
 		NumObjs:  7,
 		Rgodf: &[]OBJECTDATAFORMAT{
-			OBJECTDATAFORMAT{
-				Guid: &GUID_XAxis,
-				Ofs:  0,
-				Type: 0xFFFF03,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_YAxis,
-				Ofs:  4,
-				Type: 0xFFFF03,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_ZAxis,
-				Ofs:  8,
-				Type: 0x80FFFF03,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  12,
-				Type: 0xFFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  13,
-				Type: 0xFFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  14,
-				Type: 0x80FFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  15,
-				Type: 0x80FFFF0C,
-			},
+			{Guid: &GUID_XAxis, Ofs: 0, Type: 0xFFFF03},
+			{Guid: &GUID_YAxis, Ofs: 4, Type: 0xFFFF03},
+			{Guid: &GUID_ZAxis, Ofs: 8, Type: 0x80FFFF03},
+			{Ofs: 12, Type: 0xFFFF0C},
+			{Ofs: 13, Type: 0xFFFF0C},
+			{Ofs: 14, Type: 0x80FFFF0C},
+			{Ofs: 15, Type: 0x80FFFF0C},
+		}[0],
+	}
+
+	Mouse2 = DATAFORMAT{
+		Size:     uint32(unsafe.Sizeof(DATAFORMAT{})),
+		ObjSize:  uint32(unsafe.Sizeof(OBJECTDATAFORMAT{})),
+		Flags:    2,
+		DataSize: 20,
+		NumObjs:  11,
+		Rgodf: &[]OBJECTDATAFORMAT{
+			{Guid: &GUID_XAxis, Ofs: 0, Type: 0xFFFF03},
+			{Guid: &GUID_YAxis, Ofs: 4, Type: 0xFFFF03},
+			{Guid: &GUID_ZAxis, Ofs: 8, Type: 0x80FFFF03},
+			{Ofs: 12, Type: 0xFFFF0C},
+			{Ofs: 13, Type: 0xFFFF0C},
+			{Ofs: 14, Type: 0x80FFFF0C},
+			{Ofs: 15, Type: 0x80FFFF0C},
+			{Ofs: 16, Type: 0x80FFFF0C},
+			{Ofs: 17, Type: 0x80FFFF0C},
+			{Ofs: 18, Type: 0x80FFFF0C},
+			{Ofs: 19, Type: 0x80FFFF0C},
 		}[0],
 	}
 
 	Joystick = DATAFORMAT{
-		Size:     uint32(unsafe.Sizeof(dataformat)),
-		ObjSize:  uint32(unsafe.Sizeof(objectdataformat)),
+		Size:     uint32(unsafe.Sizeof(DATAFORMAT{})),
+		ObjSize:  uint32(unsafe.Sizeof(OBJECTDATAFORMAT{})),
 		Flags:    1,
 		DataSize: 80,
 		NumObjs:  44,
 		Rgodf: &[]OBJECTDATAFORMAT{
-			OBJECTDATAFORMAT{
-				Guid:  &GUID_XAxis,
-				Ofs:   0,
-				Type:  0x80FFFF03,
-				Flags: 256,
-			},
-			OBJECTDATAFORMAT{
-				Guid:  &GUID_YAxis,
-				Ofs:   4,
-				Type:  0x80FFFF03,
-				Flags: 256,
-			},
-			OBJECTDATAFORMAT{
-				Guid:  &GUID_ZAxis,
-				Ofs:   8,
-				Type:  0x80FFFF03,
-				Flags: 256,
-			},
-			OBJECTDATAFORMAT{
-				Guid:  &GUID_RxAxis,
-				Ofs:   12,
-				Type:  0x80FFFF03,
-				Flags: 256,
-			},
-			OBJECTDATAFORMAT{
-				Guid:  &GUID_RyAxis,
-				Ofs:   16,
-				Type:  0x80FFFF03,
-				Flags: 256,
-			},
-			OBJECTDATAFORMAT{
-				Guid:  &GUID_RzAxis,
-				Ofs:   20,
-				Type:  0x80FFFF03,
-				Flags: 256,
-			},
-			OBJECTDATAFORMAT{
-				Guid:  &GUID_Slider,
-				Ofs:   24,
-				Type:  0x80FFFF03,
-				Flags: 256,
-			},
-			OBJECTDATAFORMAT{
-				Guid:  &GUID_Slider,
-				Ofs:   28,
-				Type:  0x80FFFF03,
-				Flags: 256,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_POV,
-				Ofs:  32,
-				Type: 0x80FFFF10,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_POV,
-				Ofs:  36,
-				Type: 0x80FFFF10,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_POV,
-				Ofs:  40,
-				Type: 0x80FFFF10,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_POV,
-				Ofs:  44,
-				Type: 0x80FFFF10,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  48,
-				Type: 0x80FFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  49,
-				Type: 0x80FFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  50,
-				Type: 0x80FFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  51,
-				Type: 0x80FFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  52,
-				Type: 0x80FFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  53,
-				Type: 0x80FFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  54,
-				Type: 0x80FFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  55,
-				Type: 0x80FFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  56,
-				Type: 0x80FFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  57,
-				Type: 0x80FFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  58,
-				Type: 0x80FFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  59,
-				Type: 0x80FFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  60,
-				Type: 0x80FFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  61,
-				Type: 0x80FFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  62,
-				Type: 0x80FFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  63,
-				Type: 0x80FFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  64,
-				Type: 0x80FFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  65,
-				Type: 0x80FFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  66,
-				Type: 0x80FFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  67,
-				Type: 0x80FFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  68,
-				Type: 0x80FFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  69,
-				Type: 0x80FFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  70,
-				Type: 0x80FFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  71,
-				Type: 0x80FFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  72,
-				Type: 0x80FFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  73,
-				Type: 0x80FFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  74,
-				Type: 0x80FFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  75,
-				Type: 0x80FFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  76,
-				Type: 0x80FFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  77,
-				Type: 0x80FFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  78,
-				Type: 0x80FFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  79,
-				Type: 0x80FFFF0C,
-			},
+			{Guid: &GUID_XAxis, Ofs: 0, Type: 0x80FFFF03, Flags: 256},
+			{Guid: &GUID_YAxis, Ofs: 4, Type: 0x80FFFF03, Flags: 256},
+			{Guid: &GUID_ZAxis, Ofs: 8, Type: 0x80FFFF03, Flags: 256},
+			{Guid: &GUID_RxAxis, Ofs: 12, Type: 0x80FFFF03, Flags: 256},
+			{Guid: &GUID_RyAxis, Ofs: 16, Type: 0x80FFFF03, Flags: 256},
+			{Guid: &GUID_RzAxis, Ofs: 20, Type: 0x80FFFF03, Flags: 256},
+			{Guid: &GUID_Slider, Ofs: 24, Type: 0x80FFFF03, Flags: 256},
+			{Guid: &GUID_Slider, Ofs: 28, Type: 0x80FFFF03, Flags: 256},
+			{Guid: &GUID_POV, Ofs: 32, Type: 0x80FFFF10},
+			{Guid: &GUID_POV, Ofs: 36, Type: 0x80FFFF10},
+			{Guid: &GUID_POV, Ofs: 40, Type: 0x80FFFF10},
+			{Guid: &GUID_POV, Ofs: 44, Type: 0x80FFFF10},
+			{Ofs: 48, Type: 0x80FFFF0C},
+			{Ofs: 49, Type: 0x80FFFF0C},
+			{Ofs: 50, Type: 0x80FFFF0C},
+			{Ofs: 51, Type: 0x80FFFF0C},
+			{Ofs: 52, Type: 0x80FFFF0C},
+			{Ofs: 53, Type: 0x80FFFF0C},
+			{Ofs: 54, Type: 0x80FFFF0C},
+			{Ofs: 55, Type: 0x80FFFF0C},
+			{Ofs: 56, Type: 0x80FFFF0C},
+			{Ofs: 57, Type: 0x80FFFF0C},
+			{Ofs: 58, Type: 0x80FFFF0C},
+			{Ofs: 59, Type: 0x80FFFF0C},
+			{Ofs: 60, Type: 0x80FFFF0C},
+			{Ofs: 61, Type: 0x80FFFF0C},
+			{Ofs: 62, Type: 0x80FFFF0C},
+			{Ofs: 63, Type: 0x80FFFF0C},
+			{Ofs: 64, Type: 0x80FFFF0C},
+			{Ofs: 65, Type: 0x80FFFF0C},
+			{Ofs: 66, Type: 0x80FFFF0C},
+			{Ofs: 67, Type: 0x80FFFF0C},
+			{Ofs: 68, Type: 0x80FFFF0C},
+			{Ofs: 69, Type: 0x80FFFF0C},
+			{Ofs: 70, Type: 0x80FFFF0C},
+			{Ofs: 71, Type: 0x80FFFF0C},
+			{Ofs: 72, Type: 0x80FFFF0C},
+			{Ofs: 73, Type: 0x80FFFF0C},
+			{Ofs: 74, Type: 0x80FFFF0C},
+			{Ofs: 75, Type: 0x80FFFF0C},
+			{Ofs: 76, Type: 0x80FFFF0C},
+			{Ofs: 77, Type: 0x80FFFF0C},
+			{Ofs: 78, Type: 0x80FFFF0C},
+			{Ofs: 79, Type: 0x80FFFF0C},
 		}[0],
 	}
 
 	Joystick2 = DATAFORMAT{
-		Size:     uint32(unsafe.Sizeof(dataformat)),
-		ObjSize:  uint32(unsafe.Sizeof(objectdataformat)),
+		Size:     uint32(unsafe.Sizeof(DATAFORMAT{})),
+		ObjSize:  uint32(unsafe.Sizeof(OBJECTDATAFORMAT{})),
 		Flags:    1,
 		DataSize: 272,
 		NumObjs:  164,
 		Rgodf: &[]OBJECTDATAFORMAT{
-			OBJECTDATAFORMAT{
-				Guid:  &GUID_XAxis,
-				Ofs:   0,
-				Type:  0x80FFFF03,
-				Flags: 256,
-			},
-			OBJECTDATAFORMAT{
-				Guid:  &GUID_YAxis,
-				Ofs:   4,
-				Type:  0x80FFFF03,
-				Flags: 256,
-			},
-			OBJECTDATAFORMAT{
-				Guid:  &GUID_ZAxis,
-				Ofs:   8,
-				Type:  0x80FFFF03,
-				Flags: 256,
-			},
-			OBJECTDATAFORMAT{
-				Guid:  &GUID_RxAxis,
-				Ofs:   12,
-				Type:  0x80FFFF03,
-				Flags: 256,
-			},
-			OBJECTDATAFORMAT{
-				Guid:  &GUID_RyAxis,
-				Ofs:   16,
-				Type:  0x80FFFF03,
-				Flags: 256,
-			},
-			OBJECTDATAFORMAT{
-				Guid:  &GUID_RzAxis,
-				Ofs:   20,
-				Type:  0x80FFFF03,
-				Flags: 256,
-			},
-			OBJECTDATAFORMAT{
-				Guid:  &GUID_Slider,
-				Ofs:   24,
-				Type:  0x80FFFF03,
-				Flags: 256,
-			},
-			OBJECTDATAFORMAT{
-				Guid:  &GUID_Slider,
-				Ofs:   28,
-				Type:  0x80FFFF03,
-				Flags: 256,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_POV,
-				Ofs:  32,
-				Type: 0x80FFFF10,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_POV,
-				Ofs:  36,
-				Type: 0x80FFFF10,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_POV,
-				Ofs:  40,
-				Type: 0x80FFFF10,
-			},
-			OBJECTDATAFORMAT{
-				Guid: &GUID_POV,
-				Ofs:  44,
-				Type: 0x80FFFF10,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  48,
-				Type: 0x80FFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  49,
-				Type: 0x80FFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  50,
-				Type: 0x80FFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  51,
-				Type: 0x80FFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  52,
-				Type: 0x80FFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  53,
-				Type: 0x80FFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  54,
-				Type: 0x80FFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  55,
-				Type: 0x80FFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  56,
-				Type: 0x80FFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  57,
-				Type: 0x80FFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  58,
-				Type: 0x80FFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  59,
-				Type: 0x80FFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  60,
-				Type: 0x80FFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  61,
-				Type: 0x80FFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  62,
-				Type: 0x80FFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  63,
-				Type: 0x80FFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  64,
-				Type: 0x80FFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  65,
-				Type: 0x80FFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  66,
-				Type: 0x80FFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  67,
-				Type: 0x80FFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  68,
-				Type: 0x80FFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  69,
-				Type: 0x80FFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  70,
-				Type: 0x80FFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  71,
-				Type: 0x80FFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  72,
-				Type: 0x80FFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  73,
-				Type: 0x80FFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  74,
-				Type: 0x80FFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  75,
-				Type: 0x80FFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  76,
-				Type: 0x80FFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  77,
-				Type: 0x80FFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  78,
-				Type: 0x80FFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  79,
-				Type: 0x80FFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  80,
-				Type: 0x80FFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  81,
-				Type: 0x80FFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  82,
-				Type: 0x80FFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  83,
-				Type: 0x80FFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  84,
-				Type: 0x80FFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  85,
-				Type: 0x80FFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  86,
-				Type: 0x80FFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  87,
-				Type: 0x80FFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  88,
-				Type: 0x80FFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  89,
-				Type: 0x80FFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  90,
-				Type: 0x80FFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  91,
-				Type: 0x80FFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  92,
-				Type: 0x80FFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  93,
-				Type: 0x80FFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  94,
-				Type: 0x80FFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  95,
-				Type: 0x80FFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  96,
-				Type: 0x80FFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  97,
-				Type: 0x80FFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  98,
-				Type: 0x80FFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  99,
-				Type: 0x80FFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  100,
-				Type: 0x80FFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  101,
-				Type: 0x80FFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  102,
-				Type: 0x80FFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  103,
-				Type: 0x80FFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  104,
-				Type: 0x80FFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  105,
-				Type: 0x80FFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  106,
-				Type: 0x80FFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  107,
-				Type: 0x80FFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  108,
-				Type: 0x80FFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  109,
-				Type: 0x80FFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  110,
-				Type: 0x80FFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  111,
-				Type: 0x80FFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  112,
-				Type: 0x80FFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  113,
-				Type: 0x80FFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  114,
-				Type: 0x80FFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  115,
-				Type: 0x80FFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  116,
-				Type: 0x80FFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  117,
-				Type: 0x80FFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  118,
-				Type: 0x80FFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  119,
-				Type: 0x80FFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  120,
-				Type: 0x80FFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  121,
-				Type: 0x80FFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  122,
-				Type: 0x80FFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  123,
-				Type: 0x80FFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  124,
-				Type: 0x80FFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  125,
-				Type: 0x80FFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  126,
-				Type: 0x80FFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  127,
-				Type: 0x80FFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  128,
-				Type: 0x80FFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  129,
-				Type: 0x80FFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  130,
-				Type: 0x80FFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  131,
-				Type: 0x80FFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  132,
-				Type: 0x80FFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  133,
-				Type: 0x80FFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  134,
-				Type: 0x80FFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  135,
-				Type: 0x80FFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  136,
-				Type: 0x80FFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  137,
-				Type: 0x80FFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  138,
-				Type: 0x80FFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  139,
-				Type: 0x80FFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  140,
-				Type: 0x80FFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  141,
-				Type: 0x80FFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  142,
-				Type: 0x80FFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  143,
-				Type: 0x80FFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  144,
-				Type: 0x80FFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  145,
-				Type: 0x80FFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  146,
-				Type: 0x80FFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  147,
-				Type: 0x80FFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  148,
-				Type: 0x80FFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  149,
-				Type: 0x80FFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  150,
-				Type: 0x80FFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  151,
-				Type: 0x80FFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  152,
-				Type: 0x80FFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  153,
-				Type: 0x80FFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  154,
-				Type: 0x80FFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  155,
-				Type: 0x80FFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  156,
-				Type: 0x80FFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  157,
-				Type: 0x80FFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  158,
-				Type: 0x80FFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  159,
-				Type: 0x80FFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  160,
-				Type: 0x80FFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  161,
-				Type: 0x80FFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  162,
-				Type: 0x80FFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  163,
-				Type: 0x80FFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  164,
-				Type: 0x80FFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  165,
-				Type: 0x80FFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  166,
-				Type: 0x80FFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  167,
-				Type: 0x80FFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  168,
-				Type: 0x80FFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  169,
-				Type: 0x80FFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  170,
-				Type: 0x80FFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  171,
-				Type: 0x80FFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  172,
-				Type: 0x80FFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  173,
-				Type: 0x80FFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  174,
-				Type: 0x80FFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Ofs:  175,
-				Type: 0x80FFFF0C,
-			},
-			OBJECTDATAFORMAT{
-				Guid:  &GUID_XAxis,
-				Ofs:   176,
-				Type:  0x80FFFF03,
-				Flags: 512,
-			},
-			OBJECTDATAFORMAT{
-				Guid:  &GUID_YAxis,
-				Ofs:   180,
-				Type:  0x80FFFF03,
-				Flags: 512,
-			},
-			OBJECTDATAFORMAT{
-				Guid:  &GUID_ZAxis,
-				Ofs:   184,
-				Type:  0x80FFFF03,
-				Flags: 512,
-			},
-			OBJECTDATAFORMAT{
-				Guid:  &GUID_RxAxis,
-				Ofs:   188,
-				Type:  0x80FFFF03,
-				Flags: 512,
-			},
-			OBJECTDATAFORMAT{
-				Guid:  &GUID_RyAxis,
-				Ofs:   192,
-				Type:  0x80FFFF03,
-				Flags: 512,
-			},
-			OBJECTDATAFORMAT{
-				Guid:  &GUID_RzAxis,
-				Ofs:   196,
-				Type:  0x80FFFF03,
-				Flags: 512,
-			},
-			OBJECTDATAFORMAT{
-				Guid:  &GUID_Slider,
-				Ofs:   24,
-				Type:  0x80FFFF03,
-				Flags: 512,
-			},
-			OBJECTDATAFORMAT{
-				Guid:  &GUID_Slider,
-				Ofs:   28,
-				Type:  0x80FFFF03,
-				Flags: 512,
-			},
-			OBJECTDATAFORMAT{
-				Guid:  &GUID_XAxis,
-				Ofs:   208,
-				Type:  0x80FFFF03,
-				Flags: 768,
-			},
-			OBJECTDATAFORMAT{
-				Guid:  &GUID_YAxis,
-				Ofs:   212,
-				Type:  0x80FFFF03,
-				Flags: 768,
-			},
-			OBJECTDATAFORMAT{
-				Guid:  &GUID_ZAxis,
-				Ofs:   216,
-				Type:  0x80FFFF03,
-				Flags: 768,
-			},
-			OBJECTDATAFORMAT{
-				Guid:  &GUID_RxAxis,
-				Ofs:   220,
-				Type:  0x80FFFF03,
-				Flags: 768,
-			},
-			OBJECTDATAFORMAT{
-				Guid:  &GUID_RyAxis,
-				Ofs:   224,
-				Type:  0x80FFFF03,
-				Flags: 768,
-			},
-			OBJECTDATAFORMAT{
-				Guid:  &GUID_RzAxis,
-				Ofs:   228,
-				Type:  0x80FFFF03,
-				Flags: 768,
-			},
-			OBJECTDATAFORMAT{
-				Guid:  &GUID_Slider,
-				Ofs:   24,
-				Type:  0x80FFFF03,
-				Flags: 768,
-			},
-			OBJECTDATAFORMAT{
-				Guid:  &GUID_Slider,
-				Ofs:   28,
-				Type:  0x80FFFF03,
-				Flags: 768,
-			},
-			OBJECTDATAFORMAT{
-				Guid:  &GUID_XAxis,
-				Ofs:   240,
-				Type:  0x80FFFF03,
-				Flags: 1024,
-			},
-			OBJECTDATAFORMAT{
-				Guid:  &GUID_YAxis,
-				Ofs:   244,
-				Type:  0x80FFFF03,
-				Flags: 1024,
-			},
-			OBJECTDATAFORMAT{
-				Guid:  &GUID_ZAxis,
-				Ofs:   248,
-				Type:  0x80FFFF03,
-				Flags: 1024,
-			},
-			OBJECTDATAFORMAT{
-				Guid:  &GUID_RxAxis,
-				Ofs:   252,
-				Type:  0x80FFFF03,
-				Flags: 1024,
-			},
-			OBJECTDATAFORMAT{
-				Guid:  &GUID_RyAxis,
-				Ofs:   256,
-				Type:  0x80FFFF03,
-				Flags: 1024,
-			},
-			OBJECTDATAFORMAT{
-				Guid:  &GUID_RzAxis,
-				Ofs:   260,
-				Type:  0x80FFFF03,
-				Flags: 1024,
-			},
-			OBJECTDATAFORMAT{
-				Guid:  &GUID_Slider,
-				Ofs:   24,
-				Type:  0x80FFFF03,
-				Flags: 1024,
-			},
-			OBJECTDATAFORMAT{
-				Guid:  &GUID_Slider,
-				Ofs:   28,
-				Type:  0x80FFFF03,
-				Flags: 1024,
-			},
+			{Guid: &GUID_XAxis, Ofs: 0, Type: 0x80FFFF03, Flags: 256},
+			{Guid: &GUID_YAxis, Ofs: 4, Type: 0x80FFFF03, Flags: 256},
+			{Guid: &GUID_ZAxis, Ofs: 8, Type: 0x80FFFF03, Flags: 256},
+			{Guid: &GUID_RxAxis, Ofs: 12, Type: 0x80FFFF03, Flags: 256},
+			{Guid: &GUID_RyAxis, Ofs: 16, Type: 0x80FFFF03, Flags: 256},
+			{Guid: &GUID_RzAxis, Ofs: 20, Type: 0x80FFFF03, Flags: 256},
+			{Guid: &GUID_Slider, Ofs: 24, Type: 0x80FFFF03, Flags: 256},
+			{Guid: &GUID_Slider, Ofs: 28, Type: 0x80FFFF03, Flags: 256},
+			{Guid: &GUID_POV, Ofs: 32, Type: 0x80FFFF10},
+			{Guid: &GUID_POV, Ofs: 36, Type: 0x80FFFF10},
+			{Guid: &GUID_POV, Ofs: 40, Type: 0x80FFFF10},
+			{Guid: &GUID_POV, Ofs: 44, Type: 0x80FFFF10},
+			{Ofs: 48, Type: 0x80FFFF0C},
+			{Ofs: 49, Type: 0x80FFFF0C},
+			{Ofs: 50, Type: 0x80FFFF0C},
+			{Ofs: 51, Type: 0x80FFFF0C},
+			{Ofs: 52, Type: 0x80FFFF0C},
+			{Ofs: 53, Type: 0x80FFFF0C},
+			{Ofs: 54, Type: 0x80FFFF0C},
+			{Ofs: 55, Type: 0x80FFFF0C},
+			{Ofs: 56, Type: 0x80FFFF0C},
+			{Ofs: 57, Type: 0x80FFFF0C},
+			{Ofs: 58, Type: 0x80FFFF0C},
+			{Ofs: 59, Type: 0x80FFFF0C},
+			{Ofs: 60, Type: 0x80FFFF0C},
+			{Ofs: 61, Type: 0x80FFFF0C},
+			{Ofs: 62, Type: 0x80FFFF0C},
+			{Ofs: 63, Type: 0x80FFFF0C},
+			{Ofs: 64, Type: 0x80FFFF0C},
+			{Ofs: 65, Type: 0x80FFFF0C},
+			{Ofs: 66, Type: 0x80FFFF0C},
+			{Ofs: 67, Type: 0x80FFFF0C},
+			{Ofs: 68, Type: 0x80FFFF0C},
+			{Ofs: 69, Type: 0x80FFFF0C},
+			{Ofs: 70, Type: 0x80FFFF0C},
+			{Ofs: 71, Type: 0x80FFFF0C},
+			{Ofs: 72, Type: 0x80FFFF0C},
+			{Ofs: 73, Type: 0x80FFFF0C},
+			{Ofs: 74, Type: 0x80FFFF0C},
+			{Ofs: 75, Type: 0x80FFFF0C},
+			{Ofs: 76, Type: 0x80FFFF0C},
+			{Ofs: 77, Type: 0x80FFFF0C},
+			{Ofs: 78, Type: 0x80FFFF0C},
+			{Ofs: 79, Type: 0x80FFFF0C},
+			{Ofs: 80, Type: 0x80FFFF0C},
+			{Ofs: 81, Type: 0x80FFFF0C},
+			{Ofs: 82, Type: 0x80FFFF0C},
+			{Ofs: 83, Type: 0x80FFFF0C},
+			{Ofs: 84, Type: 0x80FFFF0C},
+			{Ofs: 85, Type: 0x80FFFF0C},
+			{Ofs: 86, Type: 0x80FFFF0C},
+			{Ofs: 87, Type: 0x80FFFF0C},
+			{Ofs: 88, Type: 0x80FFFF0C},
+			{Ofs: 89, Type: 0x80FFFF0C},
+			{Ofs: 90, Type: 0x80FFFF0C},
+			{Ofs: 91, Type: 0x80FFFF0C},
+			{Ofs: 92, Type: 0x80FFFF0C},
+			{Ofs: 93, Type: 0x80FFFF0C},
+			{Ofs: 94, Type: 0x80FFFF0C},
+			{Ofs: 95, Type: 0x80FFFF0C},
+			{Ofs: 96, Type: 0x80FFFF0C},
+			{Ofs: 97, Type: 0x80FFFF0C},
+			{Ofs: 98, Type: 0x80FFFF0C},
+			{Ofs: 99, Type: 0x80FFFF0C},
+			{Ofs: 100, Type: 0x80FFFF0C},
+			{Ofs: 101, Type: 0x80FFFF0C},
+			{Ofs: 102, Type: 0x80FFFF0C},
+			{Ofs: 103, Type: 0x80FFFF0C},
+			{Ofs: 104, Type: 0x80FFFF0C},
+			{Ofs: 105, Type: 0x80FFFF0C},
+			{Ofs: 106, Type: 0x80FFFF0C},
+			{Ofs: 107, Type: 0x80FFFF0C},
+			{Ofs: 108, Type: 0x80FFFF0C},
+			{Ofs: 109, Type: 0x80FFFF0C},
+			{Ofs: 110, Type: 0x80FFFF0C},
+			{Ofs: 111, Type: 0x80FFFF0C},
+			{Ofs: 112, Type: 0x80FFFF0C},
+			{Ofs: 113, Type: 0x80FFFF0C},
+			{Ofs: 114, Type: 0x80FFFF0C},
+			{Ofs: 115, Type: 0x80FFFF0C},
+			{Ofs: 116, Type: 0x80FFFF0C},
+			{Ofs: 117, Type: 0x80FFFF0C},
+			{Ofs: 118, Type: 0x80FFFF0C},
+			{Ofs: 119, Type: 0x80FFFF0C},
+			{Ofs: 120, Type: 0x80FFFF0C},
+			{Ofs: 121, Type: 0x80FFFF0C},
+			{Ofs: 122, Type: 0x80FFFF0C},
+			{Ofs: 123, Type: 0x80FFFF0C},
+			{Ofs: 124, Type: 0x80FFFF0C},
+			{Ofs: 125, Type: 0x80FFFF0C},
+			{Ofs: 126, Type: 0x80FFFF0C},
+			{Ofs: 127, Type: 0x80FFFF0C},
+			{Ofs: 128, Type: 0x80FFFF0C},
+			{Ofs: 129, Type: 0x80FFFF0C},
+			{Ofs: 130, Type: 0x80FFFF0C},
+			{Ofs: 131, Type: 0x80FFFF0C},
+			{Ofs: 132, Type: 0x80FFFF0C},
+			{Ofs: 133, Type: 0x80FFFF0C},
+			{Ofs: 134, Type: 0x80FFFF0C},
+			{Ofs: 135, Type: 0x80FFFF0C},
+			{Ofs: 136, Type: 0x80FFFF0C},
+			{Ofs: 137, Type: 0x80FFFF0C},
+			{Ofs: 138, Type: 0x80FFFF0C},
+			{Ofs: 139, Type: 0x80FFFF0C},
+			{Ofs: 140, Type: 0x80FFFF0C},
+			{Ofs: 141, Type: 0x80FFFF0C},
+			{Ofs: 142, Type: 0x80FFFF0C},
+			{Ofs: 143, Type: 0x80FFFF0C},
+			{Ofs: 144, Type: 0x80FFFF0C},
+			{Ofs: 145, Type: 0x80FFFF0C},
+			{Ofs: 146, Type: 0x80FFFF0C},
+			{Ofs: 147, Type: 0x80FFFF0C},
+			{Ofs: 148, Type: 0x80FFFF0C},
+			{Ofs: 149, Type: 0x80FFFF0C},
+			{Ofs: 150, Type: 0x80FFFF0C},
+			{Ofs: 151, Type: 0x80FFFF0C},
+			{Ofs: 152, Type: 0x80FFFF0C},
+			{Ofs: 153, Type: 0x80FFFF0C},
+			{Ofs: 154, Type: 0x80FFFF0C},
+			{Ofs: 155, Type: 0x80FFFF0C},
+			{Ofs: 156, Type: 0x80FFFF0C},
+			{Ofs: 157, Type: 0x80FFFF0C},
+			{Ofs: 158, Type: 0x80FFFF0C},
+			{Ofs: 159, Type: 0x80FFFF0C},
+			{Ofs: 160, Type: 0x80FFFF0C},
+			{Ofs: 161, Type: 0x80FFFF0C},
+			{Ofs: 162, Type: 0x80FFFF0C},
+			{Ofs: 163, Type: 0x80FFFF0C},
+			{Ofs: 164, Type: 0x80FFFF0C},
+			{Ofs: 165, Type: 0x80FFFF0C},
+			{Ofs: 166, Type: 0x80FFFF0C},
+			{Ofs: 167, Type: 0x80FFFF0C},
+			{Ofs: 168, Type: 0x80FFFF0C},
+			{Ofs: 169, Type: 0x80FFFF0C},
+			{Ofs: 170, Type: 0x80FFFF0C},
+			{Ofs: 171, Type: 0x80FFFF0C},
+			{Ofs: 172, Type: 0x80FFFF0C},
+			{Ofs: 173, Type: 0x80FFFF0C},
+			{Ofs: 174, Type: 0x80FFFF0C},
+			{Ofs: 175, Type: 0x80FFFF0C},
+			{Guid: &GUID_XAxis, Ofs: 176, Type: 0x80FFFF03, Flags: 512},
+			{Guid: &GUID_YAxis, Ofs: 180, Type: 0x80FFFF03, Flags: 512},
+			{Guid: &GUID_ZAxis, Ofs: 184, Type: 0x80FFFF03, Flags: 512},
+			{Guid: &GUID_RxAxis, Ofs: 188, Type: 0x80FFFF03, Flags: 512},
+			{Guid: &GUID_RyAxis, Ofs: 192, Type: 0x80FFFF03, Flags: 512},
+			{Guid: &GUID_RzAxis, Ofs: 196, Type: 0x80FFFF03, Flags: 512},
+			{Guid: &GUID_Slider, Ofs: 24, Type: 0x80FFFF03, Flags: 512},
+			{Guid: &GUID_Slider, Ofs: 28, Type: 0x80FFFF03, Flags: 512},
+			{Guid: &GUID_XAxis, Ofs: 208, Type: 0x80FFFF03, Flags: 768},
+			{Guid: &GUID_YAxis, Ofs: 212, Type: 0x80FFFF03, Flags: 768},
+			{Guid: &GUID_ZAxis, Ofs: 216, Type: 0x80FFFF03, Flags: 768},
+			{Guid: &GUID_RxAxis, Ofs: 220, Type: 0x80FFFF03, Flags: 768},
+			{Guid: &GUID_RyAxis, Ofs: 224, Type: 0x80FFFF03, Flags: 768},
+			{Guid: &GUID_RzAxis, Ofs: 228, Type: 0x80FFFF03, Flags: 768},
+			{Guid: &GUID_Slider, Ofs: 24, Type: 0x80FFFF03, Flags: 768},
+			{Guid: &GUID_Slider, Ofs: 28, Type: 0x80FFFF03, Flags: 768},
+			{Guid: &GUID_XAxis, Ofs: 240, Type: 0x80FFFF03, Flags: 1024},
+			{Guid: &GUID_YAxis, Ofs: 244, Type: 0x80FFFF03, Flags: 1024},
+			{Guid: &GUID_ZAxis, Ofs: 248, Type: 0x80FFFF03, Flags: 1024},
+			{Guid: &GUID_RxAxis, Ofs: 252, Type: 0x80FFFF03, Flags: 1024},
+			{Guid: &GUID_RyAxis, Ofs: 256, Type: 0x80FFFF03, Flags: 1024},
+			{Guid: &GUID_RzAxis, Ofs: 260, Type: 0x80FFFF03, Flags: 1024},
+			{Guid: &GUID_Slider, Ofs: 24, Type: 0x80FFFF03, Flags: 1024},
+			{Guid: &GUID_Slider, Ofs: 28, Type: 0x80FFFF03, Flags: 1024},
 		}[0],
 	}
 
