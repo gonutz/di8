@@ -10,6 +10,8 @@ var (
 	directInput8Create = dll.NewProc("DirectInput8Create")
 )
 
+// Create returns the basic DirectInput8 object that you need to query and
+// create input devices.
 func Create(windowInstance HINSTANCE) (*DirectInput, error) {
 	var obj *DirectInput
 	ret, _, _ := directInput8Create.Call(
@@ -22,6 +24,7 @@ func Create(windowInstance HINSTANCE) (*DirectInput, error) {
 	return obj, toErr(ret)
 }
 
+// DirectInput lets you query and create input devices.
 type DirectInput struct {
 	vtbl *directInputVtbl
 }
@@ -42,12 +45,9 @@ type directInputVtbl struct {
 // method should be called for every new copy of a pointer to an interface on an
 // object.
 func (obj *DirectInput) AddRef() uint32 {
-	ret, _, _ := syscall.Syscall(
+	ret, _, _ := syscall.SyscallN(
 		obj.vtbl.AddRef,
-		1,
 		uintptr(unsafe.Pointer(obj)),
-		0,
-		0,
 	)
 	return uint32(ret)
 }
@@ -55,91 +55,74 @@ func (obj *DirectInput) AddRef() uint32 {
 // Release has to be called when finished using the object to free its
 // associated resources.
 func (obj *DirectInput) Release() uint32 {
-	ret, _, _ := syscall.Syscall(
+	ret, _, _ := syscall.SyscallN(
 		obj.vtbl.Release,
-		1,
 		uintptr(unsafe.Pointer(obj)),
-		0,
-		0,
 	)
 	return uint32(ret)
 }
 
+// CreateDevice creates a mouse, keyboard or game controller device. The guid
+// can be retrieved from EnumDevice. It is the DEVICEINSTANCE.GuidInstance that
+// is passed to the enumeration callback.
 func (obj *DirectInput) CreateDevice(guid GUID) (device *Device, err error) {
-	ret, _, _ := syscall.Syscall6(
+	ret, _, _ := syscall.SyscallN(
 		obj.vtbl.CreateDevice,
-		4,
 		uintptr(unsafe.Pointer(obj)),
 		uintptr(unsafe.Pointer(&guid)),
 		uintptr(unsafe.Pointer(&device)),
 		0,
-		0,
-		0,
 	)
-	err = toErr(ret)
-	return
+	return device, toErr(ret)
 }
 
-// devType: DEVCLASS_* or DEVTYPE_*
-// flags: EDFL_*
+// EnumDevices looks for all devices of the given type and calls the given
+// callback with each of them.
+//
+// Return ENUM_CONTINUE or ENUM_STOP from the callback. As long as you return
+// ENUM_CONTINUE, enumeration contrinues, once you return ENUM_STOP,
+// enumeration stops.
+//
+// devType can be one of:
+// - DEVCLASS_ALL: all devices.
+// - DEVCLASS_DEVICE: devices that fall into none of the other classes.
+// - DEVCLASS_GAMECTRL: game controllers.
+// - DEVCLASS_KEYBOARD: keyboards.
+// - DEVCLASS_POINTER: mouse and screen pointer devices.
+//
+// flags can be a combination of:
+// - EDFL_ALLDEVICES: all installed devices.
+// - EDFL_ATTACHEDONLY: all installed and attached devices.
+// - EDFL_FORCEFEEDBACK: devices that support force feedback (rumbling).
+// - EDFL_INCLUDEALIASES: include devices that are aliases for other devices.
+// - EDFL_INCLUDEHIDDEN: include hidden devices.
+// - EDFL_INCLUDEPHANTOMS: include placeholder devices.
+//
+// context will be passed to the callback.
 func (obj *DirectInput) EnumDevices(
 	devType uint32,
-	callback func(*DEVICEINSTANCE, uintptr) uintptr,
-	ref uintptr,
-	flags uint32) (
-	err error,
-) {
-	ret, _, _ := syscall.Syscall6(
+	callback func(instance *DEVICEINSTANCE, context uintptr) uintptr,
+	context uintptr,
+	flags uint32) error {
+	ret, _, _ := syscall.SyscallN(
 		obj.vtbl.EnumDevices,
-		5,
 		uintptr(unsafe.Pointer(obj)),
 		uintptr(devType),
 		syscall.NewCallback(callback),
-		ref,
+		context,
 		uintptr(flags),
-		0,
 	)
-	err = toErr(ret)
-	return
+	return toErr(ret)
 }
 
-//func (obj DirectInput) FindDevice(
-//	guid GUID,
-//	name string,
-//) (
-//	guidDevice GUID,
-//	err error,
-//) {
-//	cGuid := guid.toC()
-//	cName := C.CString(name)
-//	defer C.free(unsafe.Pointer(cName))
-//	var cGuidDevice C.GUID
-//	err = toError(C.IDirectInput8FindDevice(
-//		obj.handle,
-//		&cGuid,
-//		(*C.CHAR)(cName),
-//		&cGuidDevice,
-//	))
-//	guidDevice.fromC(&cGuidDevice)
-//	return
-//}
-//
-//func (obj DirectInput) GetDeviceStatus(guid GUID) (err error) {
-//	cGuid := guid.toC()
-//	err = toError(C.IDirectInput8GetDeviceStatus(obj.handle, &cGuid))
-//	return
-//}
-//
-//func (obj DirectInput) RunControlPanel(
-//	ownerWindow unsafe.Pointer,
-//	flags uint32,
-//) (
-//	err error,
-//) {
-//	err = toError(C.IDirectInput8RunControlPanel(
-//		obj.handle,
-//		C.HWND(ownerWindow),
-//		C.DWORD(flags),
-//	))
-//	return
-//}
+// RunControlPanel runs Control Panel to enable the user to install a new input
+// device or modify configurations.
+func (obj *DirectInput) RunControlPanel(owner HWND) error {
+	ret, _, _ := syscall.SyscallN(
+		obj.vtbl.RunControlPanel,
+		uintptr(unsafe.Pointer(obj)),
+		uintptr(owner),
+		0,
+	)
+	return toErr(ret)
+}
